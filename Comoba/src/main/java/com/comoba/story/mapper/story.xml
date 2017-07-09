@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===== #26. mapper 기본설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- ===== #27. 루트엘리먼트 & 네임스페이스 설정(프로젝트 전체 내에서 고유해야 한다.) ===== -->
+<mapper namespace="story">
+
+	<select id="getStory_no" resultType="int">
+		select seq_cmb_board.nextval
+		from dual
+	</select>
+
+	<update id="storydelete" parameterType="String">
+		update cmb_story set story_status = 0
+		where story_no = #{story_no}
+	</update>
+
+
+
+	<!-- ===== #58. 글쓰기 ===== -->
+
+	<insert id="storywrite" parameterType="java.util.HashMap">
+		insert into
+		cmb_story(story_no, memberno_fk, story_tag, likeCount, regDate,
+		story_publicStatus, story_status)
+		values(#{story_no}, #{memberno_fk},
+		#{story_tag}, default, default, #{story_publicStatus}, default)
+	</insert>
+
+	<!-- 내용첨부 -->
+	<insert id="addContents" parameterType="java.util.HashMap">
+		insert into
+		cmb_story_contents(story_no, story_contents, readCount)
+		values(#{story_no}, #{story_contents}, default)
+	</insert>
+
+	<!-- 파일첨부 -->
+	<insert id="storywrite_addFile" parameterType="java.util.HashMap">
+		insert into cmb_story_file(file_no, story_no, fileName, orgFilename,
+		fileSize, thumbnailFileName)
+		values(seq_cmb_story_file.nextval, #{story_no}, #{fileName}, #{orgFilename}, #{fileSize},
+		#{thumbnailFileName})
+	</insert>
+
+	<!-- 파일없는 글 수정 -->
+	<update id="storyedit" parameterType="java.util.HashMap">
+		UPDATE cmb_story
+		SET story_tag = #{story_tag},
+		regDate = default,
+		story_publicStatus = #{story_publicStatus}
+		WHERE story_no = #{story_no}
+	</update>
+
+	<update id="editContents" parameterType="java.util.HashMap">
+		UPDATE cmb_story_contents
+		SET story_contents = #{story_contents}
+		WHERE story_no = #{story_no}
+	</update>
+
+
+	<!-- 파일있는 글 수정 -->
+	<delete id="storydelete_addFile" parameterType="java.util.HashMap">
+		delete from cmb_story_file
+		where story_no = #{story_no}
+	</delete>
+
+	<!-- 파일있는 글 수정 -->
+	<insert id="storyNewwrite_addFile" parameterType="java.util.HashMap">
+		insert into cmb_story_file(file_no, story_no, fileName, orgFilename,
+		fileSize, thumbnailFileName)
+		values(seq_cmb_story_file.nextval, #{story_no}, #{fileName}, #{orgFilename}, #{fileSize},
+		#{thumbnailFileName})
+	</insert>
+
+
+	<!-- 스토리 리스트 -->
+	<resultMap type="java.util.HashMap" id="getListStoryMap">
+		<result property="STORY_NO" column="story_no" javaType="String" />
+		<result property="MEMBERNO_FK" column="memberno_fk" javaType="String" />
+		<result property="NICKNAME" column="nickname" javaType="String" />
+		<result property="STORY_STATUS" column="story_status" javaType="String" />
+		<result property="STORY_PUBLICSTATUS" column="story_publicStatus"
+			javaType="String" />
+		<result property="THUMBNAILFILENAME" column="thumbnailFileName"
+			javaType="String" />
+	</resultMap>
+	<select id="getListStory" parameterType="java.util.HashMap"
+		resultMap="getListStoryMap">
+		select A.story_no, A.memberno_fk, A.nickname, A.story_status,
+		A.story_publicStatus, B.thumbnailfilename
+		from view_cmb_storyinfo A left join
+		( select *
+		from cmb_story_file
+		where file_no in (select min(file_no)
+		from cmb_story_file
+		group by story_no)) B
+		on A.story_no = B.story_no
+		<if test="search != null">
+			where A.nickname = #{search}
+		</if>
+		order by story_no
+
+
+	</select>
+
+
+	<!-- 좋아요 리스트 -->
+	<resultMap type="java.util.HashMap" id="getListLikeMap">
+		<result property="LIKESTORY_NO" column="likestory_no" javaType="String" />
+		<result property="LIKEMEMBERNO" column="likememberno" javaType="String" />
+	</resultMap>
+	<select id="getListLike" resultMap="getListLikeMap">
+		select likestory_no, likememberno
+		from cmb_like
+	</select>
+
+
+	<!-- 조회수(story_no) 1증가 -->
+	<update id="setAddstorycount" parameterType="String">
+		update
+		cmb_story_contents set readcount = readcount + 1
+		where story_no = #{story_no}
+	</update>
+
+	<!-- 스토리 상세페이지 -->
+	<resultMap type="java.util.HashMap" id="getstoryDetailMap">
+		<result property="NICKNAME" column="nickname" javaType="String" />
+		<result property="STORY_NO" column="story_no" javaType="String" />
+		<result property="MEMBERNO_FK" column="memberno_fk" javaType="String" />
+		<result property="STORY_TAG" column="story_tag" javaType="String" />
+		<result property="LIKECOUNT" column="likeCount" javaType="String" />
+		<result property="REGDATE" column="regDate" javaType="String" />
+		<result property="STORY_PUBLICSTATUS" column="story_publicStatus"
+			javaType="String" />
+		<result property="STORY_CONTENTS" column="story_contents"
+			javaType="String" />
+		<result property="READCOUNT" column="readCount" javaType="String" />
+	</resultMap>
+	<select id="getstoryDetail" resultMap="getstoryDetailMap"
+		parameterType="String">
+		select nickname, story_no, memberno_fk, story_tag, likeCount, regDate
+		,story_publicStatus, story_contents, readCount
+		from view_cmb_storyinfo
+		where story_no = #{story_no}
+	</select>
+
+
+	<!-- 스토리 상세페이지 -->
+	<resultMap type="java.util.HashMap" id="getstoryDetailImageListMap">
+		<result property="FILENAME" column="fileName" javaType="String" />
+		<result property="ORGFILENAME" column="orgFilename" javaType="String" />
+		<result property="FILESIZE" column="fileSize" javaType="String" />
+		<result property="THUMBNAILFILENAME" column="thumbnailFileName"
+			javaType="String" />
+	</resultMap>
+	<select id="getstoryDetailImage" resultMap="getstoryDetailImageListMap">
+		select fileName, orgFilename, fileSize, thumbnailFileName
+		from cmb_story_file
+		where story_no = #{story_no}
+		order by file_no asc
+	</select>
+
+
+	<!-- 좋아요 눌렀쪙!! -->
+	<!-- <insert id="likeUp" parameterType="java.util.HashMap"> insert into 
+		cmb_like(like_no, likestory_no, likememberno) values(seq_cmb_like.nextval, 
+		#{likeStory_no}, #{likeMemberno}) </insert> 좋아요 없앴쪙!! <delete id="likeDown" 
+		parameterType="java.util.HashMap"> delete from cmb_like where likestory_no 
+		= #{likeStory_no} and likememberno = #{likeMemberno} </delete> -->
+
+	<insert id="getlikeon" parameterType="java.util.HashMap">
+		insert into cmb_like(like_no, likestory_no, likememberno)
+		values(seq_cmb_like.nextval, #{likeStory_no}, #{likeMemberno})
+	</insert>
+
+
+
+	<delete id="getlikeoff" parameterType="java.util.HashMap">
+		delete from cmb_like
+		where likestory_no = #{likeStory_no}
+		and likememberno = #{likeMemberno}
+
+	</delete>
+
+
+
+	<update id="getlikeUp" parameterType="java.util.HashMap">
+		update cmb_story set likecount = likecount + 1
+		where story_no = #{likeStory_no}
+
+	</update>
+
+
+
+	<update id="getlikeDown" parameterType="java.util.HashMap">
+		update cmb_story set likecount = likecount - 1
+		where story_no = #{likeStory_no}
+
+	</update>
+
+
+	<select id="getLikeNumber" parameterType="java.util.HashMap"
+		resultType="int">
+		select likecount
+		from cmb_story
+		where story_no = #{likeStory_no}
+	</select>
+
+	<!-- 댓글쓰기 -->
+	<insert id="addComment" parameterType="com.comoba.ourroom.model.CommentVO">
+		insert into cmb_comment(comment_no, memberno_fk, together_no, boardtype,
+		comment_content, comment_date, comment_status)
+		values(seq_cmb_comment.nextval, #{memberno_fk}, #{together_no},
+		#{boardtype}, #{comment_content}, default, default)
+	</insert>
+
+	<!-- ===== #92. 댓글내용 보여주기 ===== -->
+	<select id="listcomment" parameterType="String"
+		resultType="com.comoba.ourroom.model.CommentVO">
+		select comment_no, memberno_fk, together_no, boardtype, comment_content
+		, comment_date , comment_status
+		from cmb_comment
+		where comment_status = 1 and together_no = #{story_no}
+		order by comment_no desc
+	</select>
+
+	<!-- 댓글 수 가져오기 -->
+	<select id="getTotalCount" parameterType="String" resultType="int">
+		select count(*)
+		from cmb_comment
+		where boardtype = 1
+		and together_no = #{story_no}
+		and comment_status = 1
+
+	</select>
+
+
+	<!-- ===== #92. 댓글테이블에 있는 댓글을 쓴 회원번호를 가져와서 닉네임 보여주기 ===== -->
+	<select id="getnickname" parameterType="int" resultType="String">
+		select nickname
+		from cmb_member
+		where memberno = #{memberno}
+	</select>
+
+
+	<!-- 글게시물에 대한 멤버 넘버 가져오기 -->
+	<select id="getmemberno" parameterType="String" resultType="int">
+		select memberno_fk
+		from cmb_story
+		where story_no = #{story_no}
+	</select>
+
+
+	<!-- 스터디룸 상세페이지 가져오기 -->
+	<resultMap type="java.util.HashMap" id="detailViewMap">
+		<result property="STUDYROOM_NO" column="studyroom_no" javaType="String" />
+		<result property="STUDYROOM_NAME" column="studyroom_name"
+			javaType="String" />
+		<result property="ADDR1" column="addr1" javaType="String" />
+		<result property="ADDR2" column="addr2" javaType="String" />
+		<result property="HP" column="hp" javaType="String" />
+		<result property="COST" column="cost" javaType="String" />
+		<result property="TITLE" column="title" javaType="String" />
+		<result property="STUDYROOM_CONTENTS" column="studyroom_contents"
+			javaType="String" />
+	</resultMap>
+	<select id="detailView" parameterType="String" resultMap="detailViewMap">
+		select
+		STUDYROOM_CONTENTS, STUDYROOM_NO , STUDYROOM_NAME, ADDR1, ADDR2, HP,
+		COST , TITLE
+		from cmb_studyroom_contents A , cmb_studyroom B
+		where
+		A.STUDYROOM_CONTENTS_NO = B.STUDYROOM_NO
+		and STUDYROOM_NO = #{studyroom_no}
+	</select>
+
+
+
+
+	<resultMap type="java.util.HashMap" id="ImgListMap">
+		<result property="IMAGEFILENAME" column="imagefilename"
+			javaType="String" />
+	</resultMap>
+	<select id="getImgList" parameterType="String" resultMap="ImgListMap">
+		select *
+		from cmb_studyroom_addfile
+		where fk_studyroom_no = #{studyroom_no}
+		order by IMAGEFILENAME
+	</select>
+
+
+
+	<update id="studyroomDel" parameterType="String">
+		update cmb_studyroom set
+		status = 0 where studyroom_no = #{studyroom_no}
+	</update>
+
+</mapper>

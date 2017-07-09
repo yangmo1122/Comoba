@@ -1,0 +1,920 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===== #26. mapper 기본설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<!-- ===== #27. 루트엘리먼트 & 네임스페이스 설정(프로젝트 전체 내에서 고유해야 한다.) ===== -->
+<mapper namespace="main">
+
+<!--월성시작  -->
+ <!-- 1. 로그인 -->
+   <select id="loginEnd" parameterType="java.util.HashMap" resultType="int">
+		select case( select count(*)
+		           from cmb_member
+		           where email = #{email} and
+		                 pwd = #{pwd})
+		      when 1 then 1
+		       else( case(select count(*) 
+		          from cmb_member
+		          where email= #{email})
+		         when 1 then 0
+		         else -1
+		         end
+		         )
+		     end as LOGINCHECK
+		from dual
+   </select>
+   
+ <!-- 2. 로그인 성공한 사용자 정보 가져오기 -->
+   <select id="getLoginMember" parameterType="String" resultType="com.comoba.main.model.MemberVO">
+ 		select memberno, nickname, email, comments
+		        from cmb_member
+		where status = 1 and email = #{email}
+   </select>
+ 
+ <!-- 3.회원가입 이미지 없는거 -->  
+   	<insert id="memberInsert" parameterType="java.util.HashMap">
+		insert into cmb_member(memberno, nickname, pwd, email, status)
+		values(seq_cmb_member.nextval, #{nickname}, #{pwd}, #{email}, 1)
+	</insert>
+
+ <!-- 3-1.회원가입 이미지포함1 -->  
+   	<insert id="Insertwithphoto" parameterType="java.util.HashMap">
+		insert into cmb_member(memberno, nickname, pwd, email, status, imagestatus)
+		values(seq_cmb_member.nextval, #{nickname}, #{pwd}, #{email}, 1, 1)
+	</insert> 
+	
+ <!-- 3-2. 사용자 번호 가져오기(밑에user_fk를 넣기위함) -->
+   <select id="getmemberno" parameterType="int" resultType="int">
+ 		select max(memberno)
+		from cmb_member
+		where status = 1
+   </select>	
+	
+<!-- 3-3.회원가입 이미지포함1-2 -->
+	<insert id="Insert_withFile" parameterType="java.util.HashMap">
+		insert into cmb_userimage(image_no, user_fk, fileName, orgFilename, fileSize, thumbnailFileName)
+		values(seq_cmb_userimage.nextval, #{memberno}, #{fileName}, #{orgFilename}, #{fileSize}, #{thumbnailFileName})
+	</insert>
+	
+<!-- 4.유저 이미지 가져오기 -->
+   <select id="getuserimage" parameterType="String" resultType="String">
+		select thumbnailfilename
+		from cmb_userimage
+		where user_fk = #{memberno}
+   </select>		
+
+ <!-- 5.메인 페이지 게시글 -->  
+    <resultMap type="java.util.HashMap" id="getTodayListMap">
+		<result property="FILENAME" column="FILENAME" javaType="String" />
+		<result property="STORY_NO" column="STORY_NO" javaType="String" />
+	</resultMap>
+	<select id="getTodayList" resultMap="getTodayListMap">
+		select a.story_no as story_no, b.filename as filename
+		from ( select story_no
+		      from cmb_story
+		      where story_publicStatus = 1 and to_date(regDate +(9/24),'yyyy-mm-dd') = to_date(sysdate +(9/24),'yyyy-mm-dd')) A
+		      left join ( select story_no, filename
+		             from cmb_story_file) B
+		on A.story_no = B.story_no
+		order by story_no
+	</select>
+
+ <!-- 5-1.오늘의 글수 -->  
+ <resultMap type="java.util.HashMap" id="gettodaynoMap">
+    	<result property="MAXNUM" column="MAXNUM" javaType="String" />
+	</resultMap>
+	<select id="gettodayno" resultMap="gettodaynoMap">
+		select max(rno) as maxnum
+		from ( select rownum as rno, story_no
+		      from cmb_story
+		      where story_publicStatus = 1 and to_date(regDate +(9/24),'yyyy-mm-dd') = to_date(sysdate +(9/24),'yyyy-mm-dd')) A
+		      left join ( select story_no
+		             from cmb_story_file) B
+		on A.story_no = B.story_no
+		order by maxnum
+	</select>
+
+ <!-- 5-2.메인 페이지 자극글 -->  
+    <resultMap type="java.util.HashMap" id="getMotivateListMap">
+    	<result property="STORY_NO" column="STORY_NO" javaType="String" />
+    	<result property="FILENAME" column="FILENAME" javaType="String" />
+	</resultMap>
+	<select id="getMotivateList" resultMap="getMotivateListMap">
+		select a.story_no as story_no, b.filename as filename
+		from ( select rownum as rno, story_no, story_tag
+		      from cmb_story
+		      where story_publicStatus = 1 and to_date(regDate +(9/24),'yyyy-mm-dd') = to_date(sysdate +(9/24),'yyyy-mm-dd')) A
+		      left join ( select story_no, filename
+		             from cmb_story_file) B
+		on A.story_no = B.story_no
+		where A.story_tag like '%'|| '자극' ||'%'
+	</select>
+	
+ <!-- 5-3.오늘의 자극글 수 -->  
+ <resultMap type="java.util.HashMap" id="getmotivenoMap">
+    	<result property="MAXNUM" column="MAXNUM" javaType="String" />
+	</resultMap>
+	<select id="getmotiveno" resultMap="getmotivenoMap">
+		select max(rno) as maxnum
+		from ( select rownum as rno, story_no
+		      from cmb_story
+		      where story_publicStatus = 1 and to_date(regDate +(9/24),'yyyy-mm-dd') = to_date(sysdate +(9/24),'yyyy-mm-dd')) A
+		      left join ( select story_no
+		             from cmb_story_file) B
+		on A.story_no = B.story_no
+		order by maxnum
+	</select>	
+	
+<!-- 6.회원수정 이미지 수정없이 -->
+	<update id="edituser" parameterType="java.util.HashMap">
+		update cmb_member set nickname = #{nickname}, pwd = #{pwd}, comments = #{comments}
+		where memberno = #{memberno}
+	</update>
+
+<!-- 6-1.회원수정 이미지포함 -->
+	<update id="edit_withFile" parameterType="java.util.HashMap">
+		update cmb_userimage set fileName = #{fileName}, orgFilename = #{orgFilename}, fileSize = #{fileSize}, thumbnailFileName = #{thumbnailFileName}
+		where user_fk = #{memberno}
+	</update>
+	
+<!-- 7.암호받기 -->
+   <select id="getUser" parameterType="String" resultType="int">
+			select count(*) as cnt
+			where status = 1 and email = #{email}
+   </select>
+
+<!-- 8.암호수정 -->   
+	<update id="changepwd" parameterType="java.util.HashMap">
+		update cmb_member set pwd = #{pwd}
+		where status = 1 and email = #{email}
+	</update>
+		
+<!-- 9.유저가 설정한 dday중 현황창에서 얼마나 남았는지를 보여주기 -->  
+	<select id="getremaindate" parameterType="java.util.HashMap" resultType="String" >
+		select remaindate
+		from 
+		    (select memberno
+		     from cmb_member
+		     where memberno = #{memberno} and status = 1
+		     order by memberno asc) A
+		join
+		    (select  dday_no, memberno_fk, datepriority
+		      , to_date(to_char(ddaydate+(9/24), 'yyyy-mm-dd'), 'yyyy-mm-dd') - to_date(to_char(sysdate+(9/24), 'yyyy-mm-dd'), 'yyyy-mm-dd')+1 as remaindate
+		from cmb_dday
+		where to_date(to_char(ddaydate+(9/24), 'yyyy-mm-dd'), 'yyyy-mm-dd') - to_date(to_char(sysdate+(9/24), 'yyyy-mm-dd'), 'yyyy-mm-dd') > 0)B
+		on memberno = memberno_fk
+		where datepriority = 1
+	</select>
+	 	 
+<!-- 10.오늘 출석했는지 여부확인 -->
+   <select id="getdate" parameterType="java.util.HashMap" resultType="int">
+		select count(*) as cnt
+		from cmb_attandance
+		where userno_fk = #{userno_fk} and  to_char(ATTANDDATE+(9/24), 'yyyy-mm-dd') = to_char(sysdate+(9/24), 'yyyy-mm-dd')
+   </select>
+	 	  
+<!-- 12.DDAY를 정한 날짜로 부터 DDAY까지의 일수 중 출석한 날짜의 총 -->
+   <select id="checkattandce" parameterType="java.util.HashMap" resultType="int">
+		select count(*) cnt
+		from cmb_attandance
+		where userno_fk = #{userno_fk} and dday_no_fk = #{dday_no_fk}
+   </select>
+
+<!-- 13.memberno_fk받아오기 -->
+   <select id="getmemberno_fk" parameterType="java.util.HashMap" resultType="String">
+		select distinct(a.memberno_fk) as memberno_fk
+		from 
+		(select memberno_fk
+		from cmb_mission)A join
+		(select memberno
+		from cmb_member
+		where status = 1 and memberno = #{memberno}
+		)B
+		on memberno_fk = memberno
+   </select>
+
+<!-- 14.dday_no_fk를 받기 위해서 dday_no받아오기 -->
+   <select id="getdday_no_fk" parameterType="java.util.HashMap" resultType="int">
+		select dday_no
+		from cmb_dday
+		where memberno_fk = #{memberno_fk} and datepriority = 1 and status = 1
+   </select>
+
+<!-- 14.오늘의 출첵 -->
+<insert id="dailyattance" parameterType="java.util.HashMap">
+	insert into cmb_attandance(attand_no, userno_fk, name_fk, dday_no_fk, attandedno, attanddate, status)
+	values(seq_cmb_attandance.nextval, #{userno_fk}, #{name_fk}, #{dday_no_fk}, 1, default, default )
+</insert>
+
+<!-- 15.총출첵 가져오기 -->
+   <select id="getMaxattand" parameterType="java.util.HashMap" resultType="int">
+		select sum(attandedno) as attandedno
+		from cmb_attandance
+		where userno_fk = #{userno_fk}
+   </select>
+
+<!-- 17.미션성공율 -->
+   <select id="getmissionrate" parameterType="java.util.HashMap" resultType="int">
+		select trunc((select count(*)
+		              from cmb_mission
+		              where memberno_fk = #{memberno_fk} and status = 1)
+		        /(select count(*)
+		          from cmb_mission
+		          where memberno_fk = #{memberno_fk})  * 100, 1 ) as missionrate
+		          from dual
+   </select>
+   
+<!-- 18.출석율 랭킹 -->
+<resultMap type="java.util.HashMap" id="getattandanceListMap">
+		<result property="RANK" column="rank" javaType="int" />
+		<result property="NAME_FK" column="name_fk" javaType="String" />
+		<result property="ATTANDANCERATE" column="attandancerate" javaType="Float" />
+</resultMap>
+<select id="getattandanceList" parameterType="java.util.HashMap" resultMap="getattandanceListMap">
+	select A.rank, A.name_fk, nvl( trunc((A.attandedno/B.ATTENDANCE)*100, 1), 0) as attandancerate
+	from                       
+			(select rank() over(order by attandedno desc) as RANK
+			        , userno_fk 
+			        , name_fk 
+			        , attandedno 
+			        from cmb_attandance
+			        where userno_fk in (select B.followed 
+			                                        from cmb_member A join cmb_follow B
+			                                        on A.memberno = B.following
+			                                        where A.memberno = #{memberno}
+			                                        union 
+			                                        select memberno
+			                                        from cmb_member
+			                                        where status = 1 and memberno  = #{memberno})                      
+			) A left join                     
+			(select memberno_fk, ATTENDANCE
+			 from view_cmb_attandance
+			 where memberno_fk in (select B.followed 
+                                   from cmb_member A join cmb_follow B
+                                   on A.memberno = B.following
+                                   where A.memberno = #{memberno}
+                                   union 
+                                   select memberno
+                                   from cmb_member
+                                   where status = 1 and memberno  = #{memberno})  
+			) B
+	on A.userno_fk = B.memberno_fk
+	order by rank
+</select>
+   
+<!-- 19.미션 달성율 랭킹 -->
+<resultMap type="java.util.HashMap" id="getmissionrateListMap">
+		<result property="RANK" column="RANK" javaType="int" />
+		<result property="NICKNAME" column="NICKNAME" javaType="String" />
+		<result property="MISSIONRATE" column="MISSIONRATE" javaType="Float" />
+</resultMap>
+<select id="getmissionrateList" parameterType="java.util.HashMap" resultMap="getmissionrateListMap">
+	   select dense_rank()over(order by T.missionrate desc) as RANK
+		     , T.nickname as NICKNAME
+		     , T.missionrate as MISSIONRATE
+	   from 
+		    (select V.nickname, trunc((sum(V.status)/count(V.status))*100,0) as missionrate
+		     from 
+		       (select B.memberno, B.nickname, A.status
+		        from cmb_mission A join cmb_member B
+		        on A.memberno_fk = B.memberno
+		        where B.memberno = #{memberno}) V
+		     group by V.nickname                      
+		     union
+		     select V.nickname, trunc((sum(V.status)/count(V.status))*100,0) as missionrate
+		     from 
+			     (select B.memberno, B.nickname, A.status
+			      from cmb_mission A join cmb_member B
+			      on A.memberno_fk = B.memberno
+			      where B.memberno in (select followed
+			                           from cmb_follow
+			                           where following = #{memberno})) V
+		     group by V.nickname) T
+		order by rank       
+	</select>
+	
+<!--월성끝  -->
+   
+   <!-- 회원번호에 해당하는 회원 정보 가져오기 -->
+   <select id="getMemberinfo" parameterType="String" resultType="com.comoba.main.model.MemberVO">
+   		select memberno, nickname, email, studycnt, joindate, comments
+   		from cmb_member
+   		where memberno = #{memberno} and status = 1
+   </select>
+   
+   <!-- 라이브 작성전 시퀀스 번호 가져오기 -->
+   <select id="getSequenceno" resultType="int">
+   		select seq_cmb_board.nextval
+   		from dual
+   </select>
+   
+   <!--  라이브 작성하기 -->
+   <insert id="writeLive" parameterType="java.util.HashMap">
+   		insert into cmb_gonglive(live_no, memberno_fk, gong_title, gonglive_contents, gong_views, gong_link, writedate, gong_status)
+   		values(#{nextval}, #{memberno}, #{title}, #{content}, default, #{link}, default, default)
+   </insert>
+   
+   <!-- 라이브 수정하기 -->
+   <update id="editLive" parameterType="java.util.HashMap">
+   		update cmb_gonglive set gong_title = #{title}, gonglive_contents = #{content}, gong_link = #{link}
+   		where live_no = #{gongliveno}
+   </update>
+   
+   <!-- 라이브 삭제하기 -->
+   <update id="deleteLive" parameterType="String">
+   		update cmb_gonglive set gong_status = 0
+   		where live_no = #{delliveno}
+   </update>
+   
+   <!-- 라이브 대표이미지 수정하기 -->
+   <insert id="editLivetitleimg" parameterType="java.util.HashMap">
+   		update cmb_gonglive_addfile set fileName = #{imagefilename}, orgFilename = #{imageorgFilename}, fileSize = #{imagefileSize}
+   		where live_no_fk = #{gongliveno} and fileStatus = 1
+   </insert>
+   
+   <!-- 라이브 대표이미지 저장하기 -->
+   <insert id="addLivetitleimg" parameterType="java.util.HashMap">
+   		insert into cmb_gonglive_addfile(addfile_no, live_no_fk, fileName, orgFilename, fileSize, fileStatus)
+   		values(seq_cmb_gonglive_addfile.nextval, #{nextval}, #{imagefilename}, #{imageorgFilename}, #{imagefileSize}, 1)
+   </insert>
+   
+   <!-- 라이브 첨부파일 저장하기 -->
+   <insert id="addLiveimg" parameterType="java.util.HashMap">
+   		insert into cmb_gonglive_addfile(addfile_no, live_no_fk, fileName, orgFilename, fileSize, fileStatus)
+   		values(seq_cmb_gonglive_addfile.nextval, #{nextval}, #{imagefilename}, #{imageorgFilename}, #{imagefileSize}, 2)
+   </insert>
+   
+    <!-- 회원번호에 해당하는 회원의 라이브 가져오기 -->
+   <resultMap type="java.util.HashMap" id="getLivelistMap">
+   		<result property="LIVE_NO" column="live_no" javaType="int" />
+   		<result property="MEMBERNO_FK" column="memberno_fk" javaType="int" />
+   		<result property="GONG_TITLE" column="gong_title" javaType="String" />
+   		<result property="GONGLIVE_CONTENTS" column="gonglive_contents" javaType="String" />
+   		<result property="GONG_VIEWS" column="gong_views" javaType="int" />
+   		<result property="GONG_LINK" column="gong_link" javaType="String" />
+   		<result property="WRITEDATE" column="writedate" javaType="String" />
+   		<result property="STARPOINT" column="starpoint" javaType="double" />
+   		<result property="GONG_STATUS" column="gong_status" javaType="int" />
+   		<result property="FILENAME" column="fileName" javaType="String" />
+   		<result property="NICKNAME" column="nickname" javaType="String" />
+   </resultMap>
+   <select id="getLivelist" parameterType="String" resultMap="getLivelistMap">
+   		select A.live_no, A.memberno_fk, A.gong_title, A.gonglive_contents, A.gong_views, A.gong_link
+   			, to_char(A.writedate, 'yyyy-mm-dd') as writedate, A.gong_status, A.starpoint, B.fileName, C.nickname
+   		from cmb_gonglive A, cmb_gonglive_addfile B, cmb_member C
+   		where memberno_fk=#{memberno} and A.live_no = B.live_no_fk and B.fileStatus=1 and C.memberno=#{memberno} and A.gong_status = 1
+   </select>
+   
+   <!-- 라이브 방송내역 테이블 작성(온에어) -->
+   <insert id="onairList" parameterType="java.util.HashMap" >
+   		insert into cmb_gonglive_onair(onair_no, live_no_fk, starttime, finishtime, gong_link, comments, status)
+   		values(seq_cmb_onair.nextval, #{liveno_fk}, to_date(#{starttime}, 'yyyy-mm-dd hh24:mi'), to_date(#{finishtime}, 'yyyy-mm-dd hh24:mi'), #{gong_link}, #{comments}, default)
+   </insert>
+
+	<!-- 생방송 중인 공라이브 가져오기  -->
+	<resultMap type="java.util.HashMap" id="getOnairlistMap">
+   		<result property="LIVE_NO" column="live_no" javaType="int" />
+   		<result property="MEMBERNO_FK" column="memberno_fk" javaType="int" />
+   		<result property="GONG_TITLE" column="gong_title" javaType="String" />
+   		<result property="GONGLIVE_CONTENTS" column="gonglive_contents" javaType="String" />
+   		<result property="GONG_VIEWS" column="gong_views" javaType="int" />
+   		<result property="GONG_LINK1" column="gong_link1" javaType="String" />
+   		<result property="WRITEDATE" column="writedate" javaType="String" />
+   		<result property="STARPOINT" column="starpoint" javaType="double" />
+   		<result property="GONG_LINK2" column="gong_link2" javaType="String" />
+   		<result property="COMMENTS" column="comments" javaType="String" />
+   		<result property="LIVEVIEWCNT" column="liveviewcnt" javaType="String" />
+   		<result property="NICKNAME" column="nickname" javaType="String" />
+   		<result property="FILENAME" column="fileName" javaType="String" />
+   </resultMap>
+	<select id="getOnairlist" resultMap="getOnairlistMap">
+		select A.live_no, A.memberno_fk, A.gong_title, A.gonglive_contents, A.gong_views, A.gong_link as gong_link1, to_char(A.writedate, 'yyyy-mm-dd') as writedate, A.starpoint
+		      ,B.gong_link as gong_link2, B.comments, B.liveviewcnt, C.nickname, D.fileName
+		from cmb_gonglive A, cmb_gonglive_onair B, cmb_member C , cmb_gonglive_addfile D
+		where A.live_no = B.live_no_fk and A.memberno_fk = C.memberno and A.live_no = D.live_no_fk and D.fileStatus = 1 and B.status = 1
+	</select>
+
+	<!-- 조회수(gong_views) 1증가 -->
+	<update id="setAddGongliveviews" parameterType="String">
+		update cmb_gonglive set gong_views = gong_views + 1
+		where live_no = #{live_no}
+	</update>
+	
+	
+	<!-- 라이브 번호에 해당하는 라이브 상세정보 가져오기 -->
+	<resultMap type="java.util.HashMap" id="getLivedetailMap">
+   		<result property="GONG_TITLE" column="gong_title" javaType="String" />
+   		<result property="GONGLIVE_CONTENTS" column="gonglive_contents" javaType="String" />
+   		<result property="GONG_VIEWS" column="gong_views" javaType="int" />
+   		<result property="WRITEDATE" column="writedate" javaType="String" />
+   		<result property="STARPOINT" column="starpoint" javaType="double" />
+   		<result property="ONAIR_NO" column="onair_no" javaType="int" />
+   		<result property="GONG_LINK2" column="gong_link2" javaType="String" />
+   		<result property="COMMENTS" column="comments" javaType="String" />
+   		<result property="LIVEVIEWCNT" column="liveviewcnt" javaType="String" />
+   		<result property="STATUS" column="status" javaType="int" />
+   		<result property="FILENAME" column="fileName" javaType="String" />
+	</resultMap>
+	<select id="getLivedetail" parameterType="String" resultMap="getLivedetailMap">
+		select A.gong_title, A.gonglive_contents, A.gong_views, A.writedate, A.starpoint
+		      ,to_char(B.starttime, 'yyyy-mm-dd hh24:mi') as starttime, to_char(B.finishtime, 'yyyy-mm-dd hh24:mi') as finishtime
+		      ,B.onair_no, B.gong_link as gong_link2, B.comments, B.liveviewcnt, B.status, C.fileName
+		from cmb_gonglive A, cmb_gonglive_onair B, cmb_gonglive_addfile C
+		where live_no = #{live_no} and A.live_no = B.live_no_fk and A.live_no = C.live_no_fk and C.fileStatus = 1
+	</select>
+
+
+	<resultMap type="java.util.HashMap" id="getaddfileMap">
+		<result property="FILENAME" column="fileName" javaType="String" />
+		<result property="ORGFILENAME" column="orgFilename" javaType="String" />
+		<result property="FILESIZE" column="fileSize" javaType="int" />
+	</resultMap>
+	<!-- 첨부파일 가져오기 -->
+	<select id="getaddfile" parameterType="String" resultMap="getaddfileMap">
+		select fileName, orgFilename, fileSize
+		from cmb_gonglive_addfile
+		where live_no_fk = #{live_no} and fileStatus = 2
+	</select>
+
+	
+	<!-- 라이브 방송 횟수 가져오기 -->
+	<select id="getOnaircnt" parameterType="String" resultType="int">
+		select count(*) as cnt
+		from cmb_gonglive_onair
+		where live_no_fk = #{live_no}
+	</select>
+	
+	<!-- 라이브 방송 시청횟수 올리기 -->
+	<update id="addLiveviewcnt" parameterType="String" >
+		update cmb_gonglive_onair set liveviewcnt = liveviewcnt + 1
+		where onair_no = #{onairno}
+	</update>
+	
+	<!-- 별점 주기 -->
+	<insert id="givestars" parameterType="java.util.HashMap">
+		insert into cmb_stars(stars_no, live_no_fk, memberno_fk, stars)
+		values(seq_cmb_stars.nextval, #{liveno}, #{memberno}, #{stars})
+	</insert>
+	
+	<!-- 별점 가져오기 -->
+	<select id="getStars" parameterType="String" resultType="double">
+		select trunc((select sum(stars)
+		            from cmb_stars
+		            where live_no_fk = #{live_no})/(select count(*)
+				                                    from cmb_stars
+				                                    where live_no_fk = #{live_no})
+            ,1) as stars
+		from dual 
+	</select>
+	
+	<!-- 별점 업데이트하기 -->
+	<update id="updateStarpoint" parameterType="java.util.HashMap">
+		update cmb_gonglive set starpoint = #{star}
+		where live_no = #{liveno}
+	</update>
+	
+	<!-- 로그인유저가 별점을 줬는지 안줬는지 검사 -->
+	<select id="checkstar" parameterType="java.util.HashMap" resultType="int">
+		select count(*) as cnt
+		from cmb_stars
+		where live_no_fk = #{liveno} and memberno_fk = #{memberno}
+	</select>
+	
+	<!-- 스탑워치 시간 더하기 -->
+   <update id="addCount" parameterType="java.util.HashMap" >
+   		update cmb_member set studycnt = studycnt + #{addcnt}
+		where status = 1 and email = #{email}
+   </update>
+   
+   <!-- 팔로잉 하기 -->
+   <insert id="following" parameterType="java.util.HashMap">
+   		insert into cmb_follow(follow_no, followed, following, followedtime, status)
+   		values(seq_cmb_follow.nextval, #{mymemberno}, #{followmemberno}, default, default)
+   </insert>
+   
+   <!-- 팔로잉 취소하기 -->
+   <insert id="unfollowing" parameterType="java.util.HashMap">
+   		delete from cmb_follow
+   		where followed = #{mymemberno} and following = #{followmemberno}
+   </insert>
+
+	<!-- 팔로잉 했는지 안했는지 검사 -->
+	<select id="checkfollowing" parameterType="java.util.HashMap" resultType="int">
+		select count(*) as cnt
+		from cmb_follow
+		where followed = #{mymemberno} and following = #{followmemberno}
+	</select>
+	
+	<!-- 라이브 갯수 가져오기 -->
+	<select id="getLivecnt" parameterType="String" resultType="int">
+		select count(*) as cnt
+		from cmb_gonglive
+		where memberno_fk = #{memberno}
+	</select>
+	
+	<!-- ===== 라이브 댓글쓰기 ===== -->
+    <insert id="liveaddComment" parameterType="com.comoba.ourroom.model.CommentVO">
+    	insert into cmb_comment(comment_no, memberno_fk, together_no, boardtype, comment_content, comment_date, comment_status)
+        values(seq_cmb_comment.nextval, #{memberno_fk}, #{together_no}, #{boardtype}, #{comment_content}, default, default)
+    </insert>
+    
+ 	<!--  ===== 라이브 댓글내용 보여주기 =====  -->
+	<select id="getliveComment" parameterType="String" resultType="com.comoba.ourroom.model.CommentVO"> 
+		select A.comment_no, A.memberno_fk, A.together_no, A.boardtype, A.comment_content 
+		     , A.comment_date , A.comment_status  , B.nickname
+		from cmb_comment A, cmb_member B
+		where A.memberno_fk = B.memberno and comment_status = 1 and together_no = #{together_no}
+		order by comment_no desc
+	</select>  
+	  
+	<!--  
+	 <resultMap type="java.util.HashMap" id="getliveCommentMap">
+		<result property="COMMENT_NO" column="comment_no" javaType="String" />
+		<result property="MEMBERNO_FK" column="memberno_fk" javaType="String" />
+		<result property="TOGETHER_NO" column="together_no" javaType="String" />
+		<result property="BOARDTYPE" column="boardtype" javaType="String" />
+		<result property="COMMENT_CONTENT" column="comment_content" javaType="String" />
+		<result property="COMMENT_DATE" column="comment_date" javaType="String" />
+		<result property="COMMENT_STATUS" column="comment_status" javaType="String" />
+		<result property="NICKNAME" column="nickname" javaType="String" />
+	 </resultMap>
+	 라이브 댓글내용 보여주기
+	 <select id="getliveComment" parameterType="String" resultMap="getliveCommentMap"> 
+		select to_char(A.comment_no) as comment_no, A.memberno_fk, A.together_no, A.boardtype, A.comment_content 
+		     , to_char(A.comment_date,'yyyy-mm-dd') as comment_date, A.comment_status  , B.nickname
+		from cmb_comment A, cmb_member B
+		where A.memberno_fk = B.memberno and comment_status = 1 and together_no = #{together_no}
+		order by comment_no desc
+	</select>  
+	  -->
+	<!-- 라이브 댓글 갯수 가져오기 -->
+	<select id="getcommentCnt" parameterType="String" resultType="int">
+		select count(*)
+		from cmb_comment
+		where together_no = #{live_no}
+	</select>
+	 
+   <!-- 스터디룸의 다음번호를 가져오는 메소드   -->
+   <select id="getstudyroom_no" resultType="int">
+		select seq_cmb_studyroom.nextval
+		from dual
+	</select>
+   
+	<!-- 스터디룸을 추가하는 메소드 -->
+   	<insert id="addStudyroom" parameterType="java.util.HashMap">
+		insert into cmb_studyroom(studyroom_no, studyroom_name, addr1, addr2, hp, cost, longitude, latitude) 
+		values(#{studyroom_no}, #{studyroom_name}, #{addr1}, #{addr2}, #{hp}, #{cost}, #{longitude}, #{latitude})  
+	</insert>
+	
+	<!-- 스터디룸의 내용을 추가하는 메소드 -->
+   <insert id="addContents" parameterType="java.util.HashMap">
+		insert into cmb_studyroom_contents(studyroom_contents_no, studyroom_contents) 
+		values(#{studyroom_no}, #{studyroom_contents})  
+	</insert>
+	
+	<!-- 스터디룸의 이미지를 추가하는 메소드 -->
+    <insert id="addStudyroomimage" parameterType="java.util.HashMap">
+    	insert into cmb_studyroom_addfile(addfile_no, fk_studyroom_no, imagefilename, imageorgFilename, imagefileSize, thumbnailFileName) 
+		values(seq_cmb_studyroom_addfile.nextval, #{studyroom_no}, #{imagefilename}, #{imageorgFilename}, #{imagefileSize}, #{thumbnailFileName})  
+    </insert>
+   
+		  
+   <!-- 스터디룸의 타이틀을 추가하는 메소드 -->
+   <update id="addStudyroomtitle" parameterType="java.util.HashMap">update  cmb_studyroom set title = #{imagefilename}  where STUDYROOM_NO = #{studyroom_no}</update>
+   
+	 
+   <!-- 자유게시판 글목록 가져오는 메소드 -->
+   <select id="boardList"  resultType="com.comoba.admin.model.AdminBoardVO"  parameterType="java.util.HashMap" >
+		  	select board_no, memberno_fk, nickname, category, subject, BOARD_CONTENTS, readCount, writedate, commentCount 
+			 , groupno, fk_seq, depthno
+          	 , fileName, orgFilename, fileSize
+		from 
+		(
+		  select rownum as RNO
+		       , V.board_no, V.memberno_fk, V.nickname, V.category, V.subject, V.BOARD_CONTENTS, V.readCount, V.writedate, V.commentCount
+		       , V.groupno, V.fk_seq, V.depthno
+		       , V.fileName, V.orgFilename, V.fileSize
+		  from 
+		  (
+		      select board_no, memberno_fk, nickname 
+		           , case when length(subject) > 20 then substr(subject, 1, 18)||'..'
+		             else subject end as subject
+               , category
+		           , case when length(BOARD_CONTENTS) > 20 then substr(BOARD_CONTENTS, 1, 20)||'...'
+                 else BOARD_CONTENTS
+                 end as BOARD_CONTENTS
+               , readCount
+		           , to_char(writedate, 'yyyy-mm-dd hh24:mi:ss') as writedate
+		           , commentCount
+		           , groupno, fk_seq, depthno
+		           , fileName, orgFilename, fileSize
+		      from cmb_board A , CMB_BOARD_CONTENTS B
+		      where status = 1
+              and board_no = board_no_fk
+		<if test="colname != null and search != null">     
+		           and ${colname} like '%'|| #{search} ||'%'
+		</if>
+		      order by board_no desc
+		  ) V
+		) T
+		where T.RNO >= #{start} and T.RNO <![CDATA[<=]]> #{end}
+	</select>
+	
+	
+	
+  
+    <!-- 멤버관리게시판 멤버목록 가져오는 메소드 -->
+    <select id="memberList"  resultType="com.comoba.admin.model.AdminMemberVO"  parameterType="java.util.HashMap" >
+		  
+			select  rno, memberno, nickname
+			       , pwd, email, status, studycnt, joindate, comments 
+			  from(
+		         	select rownum as rno, V.memberno, V.nickname, V.pwd, V.email, V.status, V.studycnt, V.joindate, V.comments 
+			          from (
+							select memberno, nickname, pwd, email, status, studycnt, joindate, comments 
+							  from cmb_member
+							
+		<if test="colname != null and search != null">     
+		        where     ${colname} like '%'|| #{search} ||'%'
+		</if>
+		 order by memberno desc
+		) V
+			) T
+
+	
+	</select>
+   
+   <!-- ===== 총 게시물 건수 구하기
+	             총 게시물 건수는 검색조건이 없을때와 있을때로 나뉘어진다. =====
+	--> 
+	<select id="getTotalCount" parameterType="java.util.HashMap" resultType="int"> 
+		select count(*)
+		   from cmb_board A , CMB_BOARD_CONTENTS B
+		      where status = 1
+              and board_no = board_no_fk
+		<if test="colname != null and search != null">
+			and ${colname} like '%' || #{search} || '%'
+		</if>
+	
+	</select>  
+   
+   <!-- 맴버의 총인원수를 구하는 메소드 -->
+<select id="getMemberCount" parameterType="java.util.HashMap" resultType="int"> 
+		
+		select count(*)
+		   from cmb_member
+		       where 1 = 1 
+		       <if test="colname != null and search != null">
+		and	 ${colname} like '%' || #{search} || '%'
+		</if>
+	
+	</select>   
+   
+  
+   <!--  게시판의 뷰단을 보여주는 메소드 -->
+<select id="getView" parameterType="String" resultType="com.comoba.admin.model.AdminBoardVO">
+     select board_no, memberno_fk, nickname, subject, readCount
+		     , to_char(writedate, 'yyyy-mm-dd hh24:mi:ss') as writedate , commentCount
+		     , groupno, fk_seq, depthno
+		     , fileName, orgFilename, fileSize
+		from cmb_board
+		where status = 1 and Board_no = #{Board_no}
+	</select>
+ 
+ <!-- 게시판을 지우는 메소드 -->
+ <update id="boardDel" parameterType="String">
+		
+		update cmb_board set status = 0
+	    where Board_no = #{Board_no}
+	   </update>
+ 
+ <!-- 멤버를 지우는 메소드 --> 
+ <update id="memberDel" parameterType="String">
+		
+		update cmb_member set status = 0
+	    where memberno = #{memberno}
+	    <!--  -->
+	</update>
+ 
+ 
+ 
+  <update id="comeback" parameterType="String">
+		
+		update cmb_member set status = 1 
+	    where memberno = #{memberno}
+	    <!--  -->
+	</update>
+ 
+  <!-- 게시판을 수정하는 메소드 -->
+ <update id="Edit" parameterType="com.comoba.admin.model.AdminBoardVO">
+	
+		update cmb_board set subject= #{subject} 
+	    where board_no = #{board_no}
+  </update>
+  
+  <!--  멤버를 수정하는 메소드 -->
+ <update id="memberEdit" parameterType="com.comoba.admin.model.AdminMemberVO">
+	
+		update cmb_member set nickname =  #{nickname} , email = #{email}, pwd = #{pwd}
+	    where memberno = #{memberno}
+  </update>
+	
+<!-- 자유게시판의 내용을 수정하는 메소드 -->
+ <update id="boardContentsEdit" parameterType="com.comoba.admin.model.AdminBoardVO">
+		update CMB_BOARD_CONTENTS set board_contents= #{board_contents}
+	    where board_no_fk = #{board_no}
+	</update>
+	
+	
+	
+<!-- ===== #151. Ajax 로 검색어 입력시 자동글 완성하기 6 ===== -->
+	<resultMap type="java.util.HashMap" id="getSearchWordMap">
+		<result property="SEARCHDATA" column="searchdata" javaType="String" />
+	</resultMap>
+	<select id="searchWordCompleteList" parameterType="java.util.HashMap"
+		resultMap="getSearchWordMap">
+		<if test='colname.equals("subject")'>
+			 select SUBJECT as searchdata
+    		  from cmb_board A , CMB_BOARD_CONTENTS B
+		      where status = 1
+              and board_no = board_no_fk
+              and lower(subject) like '%' || lower(#{search}) || '%'
+     		 order by 1 desc
+		</if>
+
+		<if test='colname.equals("board_contents")'>
+			select substr(board_contents, instr(board_contents, #{search}, 1, 1),
+			length(#{search}) +
+			5 )
+			as searchdata
+			from cmb_board A , CMB_BOARD_CONTENTS B
+			where
+			lower(board_contents) like '%' || lower(#{search}) || '%'
+			   and board_no = board_no_fk
+		</if>
+
+		<if test='colname.equals("nickname")'>
+			select distinct nickname as searchdata
+			from cmb_board A , CMB_BOARD_CONTENTS B
+			where lower(nickname) like '%' || lower(#{search}) || '%'    
+		</if>
+
+	</select>	
+	
+	<!--  자유게시판의 년도별 게시판의 갯수를 가져오는 메소드 -->
+	<select id="getBoardYearCnt" resultType="int">
+		 select  count(*) as cnt
+   		 from cmb_board
+  		 group by to_char(writedate, 'yyyy')
+  	 	order by 1
+	</select>
+
+<!--  라이브게시판의 년도별 게시판의 갯수를 가져오는 메소드 -->
+<select id="getLiveYearCnt" resultType="int">
+		   select count(*) as CNT
+   		 from cmb_gonglive
+  		 group by to_char(writedate, 'yyyy')
+  	 	order by 1
+	</select>
+
+
+
+<!--  스토리게시판의 년도별 게시판의 갯수를 가져오는 메소드 -->
+<select id="getstoryYearCnt" resultType="int">
+		 select count(*) as CNT
+   		 from cmb_story
+  		 group by to_char(regdate, 'yyyy')
+  	 	 order by 1
+	</select>
+
+
+<!--  년도별 구매한 수를 가져오는 메소드 -->
+<select id="getorderYearCnt" resultType="int">
+       select count(*) as CNT
+   		 from cmb_order
+  		 group by to_char(regdate, 'yyyy')
+  	 	order by 1
+	</select>
+	
+	
+	<!--  서울의 구매한 수를 가져오는 메소드 -->
+ 	<select id="getseoulOrderCnt" parameterType="java.util.HashMap" resultType="int"> 
+		select count (*) from cmb_order  where city = #{i}
+ 	</select> 	
+ 
+ 
+ 
+<!-- 17년의 서울의 강남의 숫자를 얻어오는 메소드 -->
+<select id="getMonthSales0" resultType="int">
+       select  sum( A.cost * B.people * B.usehour) as totalcost
+  	  from cmb_studyroom A, cmb_order B
+      where     to_char(regdate, 'yy') = 17  
+			and A.studyroom_no = B.fk_studyroom_no
+			and B.city = 0
+      group by to_char(regdate, 'mm') 
+      order by 1
+	</select>
+ 
+ 
+<!-- 17년의 서울의 강서의 숫자를 얻어오는 메소드 --> 
+<select id="getMonthSales1" resultType="int">
+       select  sum( A.cost * B.people * B.usehour) as totalcost
+  	  from cmb_studyroom A, cmb_order B
+      where     to_char(regdate, 'yy') = 17  
+			and A.studyroom_no = B.fk_studyroom_no
+			and B.city = 1
+      group by to_char(regdate, 'mm') 
+      order by 1
+	</select>
+ 
+ 
+ <!-- 17년의 서울의 강동의 숫자를 얻어오는 메소드 -->
+<select id="getMonthSales2" resultType="int">
+       select  sum( A.cost * B.people * B.usehour) as totalcost
+  	  from cmb_studyroom A, cmb_order B
+      where     to_char(regdate, 'yy') = 17  
+			and A.studyroom_no = B.fk_studyroom_no
+			and B.city = 2
+      group by to_char(regdate, 'mm') 
+      order by 1
+	</select>
+ 
+ 
+ <!-- 17년의 서울의 강북의 숫자를 얻어오는 메소드 -->
+<select id="getMonthSales3" resultType="int">
+       select  sum( A.cost * B.people * B.usehour) as totalcost
+  	  from cmb_studyroom A, cmb_order B
+      where     to_char(regdate, 'yy') = 17  
+			and A.studyroom_no = B.fk_studyroom_no
+			and B.city = 3
+      group by to_char(regdate, 'mm') 
+      order by 1
+	</select>
+ 
+ 
+ <!-- 17년의 서울의 중구의 숫자를 얻어오는 메소드 -->
+<select id="getMonthSales4" resultType="int">
+       select  sum( A.cost * B.people * B.usehour) as totalcost
+  	  from cmb_studyroom A, cmb_order B
+      where     to_char(regdate, 'yy') = 17  
+			and A.studyroom_no = B.fk_studyroom_no
+			and B.city = 4
+      group by to_char(regdate, 'mm') 
+      order by 1
+	</select>
+ 
+ <!-- 재연 통합1 -->
+	
+	<resultMap type="java.util.HashMap" id="getsearchListMap">
+		<result property="MEMBERNO"    column="memberno" javaType="String" />
+		<result property="NICKNAME"    column="nickname" javaType="String" />
+		<result property="PWD" 		   column="pwd" javaType="String" />
+		<result property="EMAIL" 	   column="email" javaType="String" />
+		<result property="STATUS" 	   column="status" javaType="String" />
+		<result property="STUDYCNT"    column="studycnt" javaType="String" />
+		<result property="JOINDATE"    column="joindate" javaType="String" />
+		
+		<result property="IMAGESTATUS" column="imagestatus" javaType="String" />
+	</resultMap>
+	<select id="searchList" parameterType="java.util.HashMap" resultMap="getsearchListMap">
+	select  sum , memberno, nickname, pwd, email
+          , status, studycnt, joindate, comments, imagestatus 
+		from 
+			(
+			select  nickname ||  email as sum , memberno, nickname, pwd, email
+			      , status, studycnt, joindate, comments, imagestatus 
+			from cmb_member
+			)V
+	where lower(sum) like '%' || lower(#{search}) || '%'
+
+	</select>	
+	
+	
+	<resultMap type="java.util.HashMap" id="getAllListMap">
+		<result property="MEMBERNO"    column="memberno" javaType="String" />
+		<result property="NICKNAME"    column="nickname" javaType="String" />
+		<result property="PWD" 		   column="pwd" javaType="String" />
+		<result property="EMAIL" 	   column="email" javaType="String" />
+		<result property="STATUS" 	   column="status" javaType="String" />
+		<result property="STUDYCNT"    column="studycnt" javaType="String" />
+		<result property="JOINDATE"    column="joindate" javaType="String" />
+	
+		<result property="IMAGESTATUS" column="imagestatus" javaType="String" />
+	</resultMap>
+	<select id="memberAllList"  resultMap="getAllListMap"> 
+		select memberno, nickname, pwd, email
+      		 , status, studycnt, joindate, comments, imagestatus 
+		from cmb_member
+	</select>	
+ 
+	
+   <select id="getnickname" parameterType="String" resultType="String">
+		select nickname
+		from cmb_member
+		where email = #{email}
+   </select>
+   
+   <!-- 재연 통합1 종료 -->
+   
+</mapper>

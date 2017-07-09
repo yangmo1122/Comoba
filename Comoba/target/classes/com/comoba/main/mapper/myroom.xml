@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===== #26. mapper 기본설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<!-- ===== #27. 루트엘리먼트 & 네임스페이스 설정(프로젝트 전체 내에서 고유해야 한다.) ===== -->
+<mapper namespace="myroom">
+	<select id="followCnt" parameterType="int" resultType="int" >
+		select count(*)
+		from cmb_follow
+		where following = #{memberno}
+	</select>
+	
+	<select id="followingcnt" parameterType="int" resultType="int" >
+		select count(*)
+		from cmb_follow
+		where followed = #{memberno}
+	</select>
+	
+	
+	
+		<!-- 내가 팔로우 한 사람 번호 뽑기 -->
+	<select id="followList" parameterType="int" resultType="int" >
+		select following
+		from cmb_follow
+		where followed = #{memberno}
+	</select>
+	
+	<select id="followInfo" parameterType="int" resultType="com.comoba.main.model.MemberVO" >
+		select memberno, nickname, pwd, email, studycnt, comments
+		from cmb_member
+		where memberno = #{followno} 
+	</select>
+	
+	
+	<!-- 날 팔로우 한 사람 번호 뽑기 -->
+	<select id="followingList" parameterType="int" resultType="int" >
+		select followed
+		from cmb_follow
+		where following = #{memberno}
+	</select>
+	
+	<select id="followingInfo" parameterType="int" resultType="com.comoba.main.model.MemberVO" >
+		select memberno, nickname, pwd, email, studycnt, comments
+		from cmb_member
+		where memberno = #{followingno}
+	</select>
+	
+	
+	
+	
+	<!-- 스토리 리스트(재민이가 수정해줘야함) -->
+    <resultMap type="java.util.HashMap" id="getMyListStoryMap">
+        <result property="STORY_NO"             column="story_no"          javaType="String" />
+      <result property="NICKNAME"             column="nickname"          javaType="String" />
+      <result property="STORY_PUBLICSTATUS"      column="story_publicStatus" javaType="String" />
+       <result property="THUMBNAILFILENAME"        column="thumbnailFileName"    javaType="String" />
+   </resultMap>
+   <select id="myStoryList" resultMap="getMyListStoryMap" parameterType="int">
+      select A.story_no, A.nickname, A.story_publicStatus, B.thumbnailfilename
+                                               from view_cmb_storyinfo A left join
+                                                 ( select *
+                                                   from cmb_story_file
+                                                   where file_no in (select min(file_no)
+                                                                     from cmb_story_file
+                                                                     group by story_no)) B
+                                             on A.story_no = B.story_no
+                                              where memberno_fk = #{memberno}
+   </select>
+   
+	
+		 <insert id="writesche" parameterType="java.util.HashMap">
+   		insert into cmb_schedule(schedule_no, memberno_fk, subject, start_date
+   		<if test='!place.equals("")'>     
+			, place
+		</if>
+   		<if test='!starttime.equals("")'>     
+			,start_time
+		</if>
+		<if test='!enddate.equals("")'>     
+			,end_date
+		</if>
+		<if test='!endtime.equals("")'>     
+			,end_time 
+		</if>
+		<if test='!url.equals("")'>     
+			, url 
+		</if>
+   		)
+		values(seq_cmb_schedule.nextval, #{memberno}, #{subject}, #{startdate}
+		<if test='!place.equals("")'>     
+			,#{place}
+		</if>
+   		<if test='!starttime.equals("")'>     
+			,#{starttime}
+		</if>
+		<if test='!enddate.equals("")'>     
+			,#{enddate}
+		</if>
+		<if test='!endtime.equals("")'>     
+			,#{endtime}
+		</if>
+		<if test='!url.equals("")'>     
+			,#{url}
+		</if>
+		)
+
+   </insert>
+   
+  
+    <insert id="writeschecontent" parameterType="java.util.HashMap">
+   		insert into cmb_scd_contents(schedule_no_fk, schedule_contents)
+		values( 
+		(select schedule_no
+		from 
+		(
+		select schedule_no, rownum 
+		from cmb_schedule 
+		order by schedule_no desc  
+		)v
+		where rownum = 1)
+		, #{content})
+
+   </insert>
+
+
+	
+    <insert id="addschefile" parameterType="java.util.HashMap">
+   		insert into cmb_schedule_files(schefile_no, schedule_no_fk, filename, orgFilename, filesize)
+		values( seq_cmb_schedule_files.nextval, 
+		(select schedule_no
+		from 
+		(
+		select schedule_no, rownum 
+		from cmb_schedule 
+		order by schedule_no desc  
+		)v
+		where rownum = 1)
+		,#{imagefilename}
+		, #{imageorgFilename}
+		, #{imagefileSize})
+   </insert>
+   
+   
+	
+    <insert id="ddayWrite" parameterType="java.util.HashMap">
+   		insert into cmb_dday(dday_no, memberno_fk, subject, ddaydate)
+   		<if test='starttime.equals("")'>     
+			values( seq_cmb_dday.nextval, #{memberno}, #{subject}, to_date(#{startdate},'yyyy-mm-dd'))
+			
+		</if>
+		<if test='!starttime.equals("")'>     
+			values( seq_cmb_dday.nextval, #{memberno}, #{subject}, to_date(#{sumdate},'yyyy-mm-dd hh24:mi'))
+		</if>
+   </insert>
+   
+
+    <insert id="missionwrite" parameterType="java.util.HashMap">
+    
+    insert into cmb_mission(todolist_no , memberno_fk,  contents, missiondate)
+	values( seq_cmb_dday.nextval,  #{memberno},  #{content}, to_date(#{missiondate},'yyyy-mm-dd'))
+    
+   </insert>
+   
+
+ <resultMap type="java.util.HashMap" id="getscheduleList">
+ <result property="SCHEDULE_NO" 	column="schedule_no" 		javaType="String" />
+		<result property="SUBJECT" 	column="subject" 		javaType="String" />
+ 		<result property="PLACE" 	column="place" 			javaType="String" />
+ 		<result property="START_DATE" 	column="start_date" 	javaType="String" />
+ 		<result property="START_TIME" 	column="start_time" 	javaType="String" />
+ 		<result property="END_DATE" 	column="end_date" 	javaType="String" />
+ 		<result property="END_TIME" 	column="end_time" 	javaType="String" />
+ 		<result property="URL" 	column="url" 	javaType="String" />
+ 	</resultMap>
+	<select id="getscheduleList" resultMap="getscheduleList" parameterType="java.util.HashMap">
+		<!-- select *
+		from cmb_schedule
+		where memberno_fk = #{memberno}
+		and start_date  between (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')-21 + #{nowmonth}) 
+		and (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')+21 + #{nowmonth})
+ -->
+ 
+		select schedule_no, subject, nvl(place, '0') as place, start_date, nvl(start_time, '0') as start_time, nvl(end_date, to_date('0001-01-01', 'yyyy-mm-dd')) as end_date,  nvl(end_time, '0') as end_time,  nvl(url, '0') as url
+		from cmb_schedule
+		where memberno_fk = ${memberno}
+		and start_date  between (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')-180 ) 
+		and (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')+180 )
+     	order by end_Date desc, end_time desc
+	</select>
+
+
+	<resultMap type="java.util.HashMap" id="getddayMap">
+	<result property="DDAYNO" 	column="dday_no" 		javaType="String" />
+	<result property="DATEPRIORITY" 	column="datepriority" 		javaType="String" />
+		<result property="DDAYSUBJECT" 	column="subject" 		javaType="String" />
+ 		<result property="DDAYDATE" 	column="ddaydate" 		javaType="String" />
+ 		<result property="COLOR" 		column="color" 			javaType="String" />
+		<result property="LEFTDATE" 	column="leftdate" 		javaType="String" />	
+		<result property="MEMBERNO" 	column="memberno_fk" 		javaType="String" />	
+ 	</resultMap>
+ 	
+	<select id="getdday" resultMap="getddayMap" parameterType="String">
+
+		select memberno_fk, subject, to_char(ddaydate, 'YYYY-MM-dd' ) as ddaydate,  datepriority , dday_no, 
+                               case when ddaydate  <![CDATA[<]]> sysdate then '0' 
+                                    when (ddaydate-3) <![CDATA[<]]> sysdate then '1' 
+                                    when (ddaydate-10)  <![CDATA[<]]> sysdate then '2' 
+                                    when (ddaydate-30) <![CDATA[<]]> sysdate then '3' 
+                                    else '4' end as color,
+                                case when (ddaydate - sysdate)  <![CDATA[<]]> 0 then 'End'
+                                    else to_char(trunc(to_number(to_char(ddaydate - sysdate)), 0)) end as leftdate
+		from cmb_dday 
+		where status = 1 
+	    and memberno_fk = #{memberno}
+		and ddaydate  between (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')-180 ) 
+		and (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')+180 )
+
+ 
+	</select>
+	
+	
+	<resultMap type="java.util.HashMap" id="clickddayMap">
+	<result property="DDAYNO" 	column="dday_no" 		javaType="String" />
+		<result property="DDAYSUBJECT" 	column="subject" 		javaType="String" />
+ 		<result property="DDAYDATE" 	column="ddaydate" 		javaType="String" />
+ 		<result property="COLOR" 		column="color" 			javaType="String" />
+		<result property="LEFTDATE" 	column="leftdate" 		javaType="String" />	
+		<result property="MEMBERNO" 	column="memberno_fk" 		javaType="String" />	
+		<result property="DATEPRIORITY" 	column="datepriority" 		javaType="String" />
+ 	</resultMap>
+ 	
+	
+		<select id="getclickdday" resultMap="clickddayMap" parameterType="java.util.HashMap">
+
+		select memberno_fk, subject, to_char(ddaydate, 'YYYY-MM-dd' ) as ddaydate,  datepriority , dday_no, 
+                               case when ddaydate  <![CDATA[<]]> sysdate then '0' 
+                                    when (ddaydate-3) <![CDATA[<]]> sysdate then '1' 
+                                    when (ddaydate-10)  <![CDATA[<]]> sysdate then '2' 
+                                    when (ddaydate-30) <![CDATA[<]]> sysdate then '3' 
+                                    else '4' end as color,
+                                case when (ddaydate - sysdate)  <![CDATA[<]]> 0 then 'End'
+                                    else to_char(trunc(to_number(to_char(ddaydate - sysdate)), 0)) end as leftdate
+		from cmb_dday 
+		where status = 1 
+	    and memberno_fk = #{memberno} and to_char(ddaydate, 'yyyy-mm-dd') = #{clickdate}
+		and ddaydate  between (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')-180 ) 
+		and (to_date(SUBSTR(to_char(sysdate, 'YYYY-MM-dd' ), 1, 8) || 15 , 'yyyy-mm-dd')+180 )
+
+ 
+	</select>
+	
+	
+	 <resultMap type="java.util.HashMap" id="scheduleAllList">
+ 		<result property="SCHEDULE_NO" 	column="schedule_no" 		javaType="String" />
+		<result property="SUBJECT" 	column="subject" 		javaType="String" />
+		<result property="SCHEDULE_CONTENTS" 	column="schedule_contents" 		javaType="String" />
+ 		<result property="PLACE" 	column="place" 			javaType="String" />
+ 		<result property="START_DATE" 	column="start_date" 	javaType="String" />
+ 		<result property="START_TIME" 	column="start_time" 	javaType="String" />
+ 		<result property="END_DATE" 	column="end_date" 	javaType="String" />
+ 		<result property="END_TIME" 	column="end_time" 	javaType="String" />
+ 		<result property="URL" 	column="url" 	javaType="String" />
+ 	</resultMap>
+	<select id="scheduleAllList" resultMap="scheduleAllList" parameterType="java.util.HashMap">
+
+		select schedule_contents, schedule_no, subject, nvl(place, '0') as place, start_date, nvl(start_time, '0') as start_time, nvl(end_date, to_date('0001-01-01', 'yyyy-mm-dd')) as end_date,  nvl(end_time, '0') as end_time,  nvl(url, '0') as url
+		from cmb_schedule A, cmb_scd_contents B
+		where memberno_fk = #{memberno} and A.schedule_no = B.schedule_no_fk 
+		
+		and  to_date('${clickdate}', 'yyyy-mm-dd') 
+	    between to_date(to_char(A.start_date, 'yyyy-mm-dd'), 'yyyy-mm-dd') 
+	    and to_date(to_char(nvl(A.end_date, start_date), 'yyyy-mm-dd'), 'yyyy-mm-dd')
+	    
+ 
+	</select>
+	
+	
+	<select id="scheFileCount" resultType="int" parameterType="int">
+ 
+    	select   count(*)
+		from cmb_schedule A, cmb_schedule_files B
+		
+		
+		where b.schedule_no_fk =  #{intscheno}
+		
+    	and A.schedule_no = B.schedule_no_fk
+ 
+	</select>
+	
+	
+	<resultMap type="java.util.HashMap" id="scheFileListMap">
+ 		<result property="SCHEDULE_NO" 	column="schedule_no_fk" 		javaType="String" />
+		<result property="FILENAME" 	column="filename" 		javaType="String" />
+		<result property="ORGFILENAME" 	column="orgfilename" 		javaType="String" />
+ 		<result property="FILESIZE" 	column="filesize" 			javaType="String" />
+ 	</resultMap>
+
+	<select id="scheFileList" resultMap="scheFileListMap" parameterType="String">
+ 
+	    select   B.*, A.memberno_fk
+		from cmb_schedule A, cmb_schedule_files B
+		where A.memberno_fk = #{memberno}
+    	and A.schedule_no = B.schedule_no_fk
+	
+ 
+	</select>
+	
+	
+	
+	<resultMap type="java.util.HashMap" id="missionList">
+		<result property="MISSIONNUM" 	column="todolist_no" 		javaType="String" />
+ 		<result property="CONTENTS" 	column="contents" 		javaType="String" />
+		<result property="MISSIONDATE" 	column="missiondate" 		javaType="String" />
+		<result property="STATUS" 	column="status" 		javaType="String" />
+ 	</resultMap>
+ 	
+	<select id="missionList" resultMap="missionList" parameterType="String">
+		 
+		select *
+		from cmb_mission
+		where status in (0,1) and memberno_fk = #{memberno} and to_char(missiondate,'yyyy-mm-dd') = #{clickdate} 
+
+	</select>
+	
+	
+		<!-- 미션 완료 -->
+	<update id="micomplete" parameterType="String" >
+    update cmb_mission set status = 1
+		where todolist_no = #{missionNum}
+	</update>
+	
+	
+		
+		<!-- dday 0으로  -->
+	<update id="origindday" parameterType="String" >
+      update cmb_dday set datepriority = 0
+		where datepriority = 1
+	</update>
+	
+			
+		<!-- dday 선택  -->
+	<update id="selectdday" parameterType="String" >
+    update cmb_dday set datepriority = 1
+		where dday_no = #{ddayno}
+	</update>
+	
+
+	
+	
+	<select id="getddaycnt" resultType="int" parameterType="java.util.HashMap">
+ 
+			 select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char(to_date(#{startday}, 'yyyy-mm-dd'), 'yyyy-mm-dd')
+			Union all
+			    select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char((to_date(#{startday}, 'yyyy-mm-dd') + 1), 'yyyy-mm-dd')
+			Union all
+			    select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char((to_date(#{startday}, 'yyyy-mm-dd') + 2), 'yyyy-mm-dd')
+			Union all
+			    select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char((to_date(#{startday}, 'yyyy-mm-dd') + 3), 'yyyy-mm-dd')
+			Union all
+			    select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char((to_date(#{startday}, 'yyyy-mm-dd') + 4), 'yyyy-mm-dd')
+			Union all
+			    select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char((to_date(#{startday}, 'yyyy-mm-dd') + 5), 'yyyy-mm-dd')
+			Union all
+			    select count(*)
+			from cmb_dday
+			where memberno_fk = #{memberno}
+			and to_char(ddaydate, 'yyyy-mm-dd') = to_char((to_date(#{startday}, 'yyyy-mm-dd') + 6), 'yyyy-mm-dd')
+
+
+	</select>
+	
+	
+	<select id="getschenocnt" resultType="int" parameterType="java.util.HashMap">
+ 
+				     select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and to_date(#{startday}, 'yyyy-mm-dd') between start_date and nvl(end_date, start_date)  
+			
+			UNION all 
+			      select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and (to_date(#{startday}, 'yyyy-mm-dd') + 1) between start_date and nvl(end_date, start_date)  
+			UNION all 
+			      select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and (to_date(#{startday}, 'yyyy-mm-dd') + 2) between start_date and nvl(end_date, start_date)  
+			UNION all 
+			      select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and (to_date(#{startday}, 'yyyy-mm-dd') + 3) between start_date and nvl(end_date, start_date)  
+			UNION all 
+			      select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and (to_date(#{startday}, 'yyyy-mm-dd') + 4) between start_date and nvl(end_date, start_date)  
+			UNION all 
+			      select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and (to_date(#{startday}, 'yyyy-mm-dd') + 5) between start_date and nvl(end_date, start_date)  
+			UNION all 
+			      select count(*)
+			      from cmb_schedule
+			      where memberno_fk = #{memberno}
+			  and (to_date(#{startday}, 'yyyy-mm-dd') + 6) between start_date and nvl(end_date, start_date)  
+
+ 
+	</select>
+	
+	
+	<select id="getmissioncnt" resultType="int" parameterType="java.util.HashMap">
+			 
+				   select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = to_date(#{startday}, 'yyyy-mm-dd')
+			Union all
+			select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = (to_date(#{startday}, 'yyyy-mm-dd') + 1)
+			Union all
+			select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = (to_date(#{startday}, 'yyyy-mm-dd') + 2)
+			Union all
+			select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = (to_date(#{startday}, 'yyyy-mm-dd') + 3)
+			Union all
+			select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = (to_date(#{startday}, 'yyyy-mm-dd') + 4)
+			Union all
+			select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = (to_date(#{startday}, 'yyyy-mm-dd') + 5)
+			Union all
+			select count(*)
+			from cmb_mission
+			where memberno_fk = #{memberno}
+			and missiondate = (to_date(#{startday}, 'yyyy-mm-dd') + 6)
+
+			
+ 
+	</select>
+
+	
+	
+	<select id="getdate" resultType="String" parameterType="java.util.HashMap">
+		
+				select  to_char(to_date(#{startday}, 'yyyy-mm-dd'), 'yyyy-mm-dd')
+				from dual
+			
+			Union all
+			select  to_char((to_date(#{startday}, 'yyyy-mm-dd') + 1), 'yyyy-mm-dd')
+			from dual
+			
+			Union all
+			select  to_char((to_date(#{startday}, 'yyyy-mm-dd') + 2), 'yyyy-mm-dd')
+			from dual
+			Union all
+			select  to_char((to_date(#{startday}, 'yyyy-mm-dd') + 3), 'yyyy-mm-dd')
+			from dual
+			Union all
+			select  to_char((to_date(#{startday}, 'yyyy-mm-dd') + 4), 'yyyy-mm-dd')
+			from dual
+			Union all
+			select  to_char((to_date(#{startday}, 'yyyy-mm-dd') + 5), 'yyyy-mm-dd')
+			from dual
+			Union all
+			select  to_char((to_date(#{startday}, 'yyyy-mm-dd') + 6), 'yyyy-mm-dd')
+			from dual
+
+			
+ 
+	</select>
+	
+	
+</mapper>
