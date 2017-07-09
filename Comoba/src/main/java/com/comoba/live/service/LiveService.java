@@ -208,6 +208,15 @@ public class LiveService implements InterLiveService {
 		
 		return storyList;
 	}
+	
+	// 스토리 리스트 보여주기(비밀글)
+	@Override
+	public List<HashMap<String, String>> mysecretStoryList(int memberno) {
+		
+		List<HashMap<String, String>> storyList = dao.mysecretStoryList(memberno);
+		
+		return storyList;
+	}
 
 	// 회원번호에 해당하는 라이브 갯수가져오기
 	@Override

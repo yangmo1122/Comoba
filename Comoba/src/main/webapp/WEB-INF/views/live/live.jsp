@@ -24,29 +24,15 @@
 
 </style>
 
-  <div class="breadcrumb-wrap">
-      <div class="container">
-          <div class="row">
-             <div class="col-sm-6">
-                 <h4>공라이브</h4>
-             </div>
-             <div class="col-sm-6 hidden-xs text-right">
-                 <ol class="breadcrumb">
-                     <li><a href="index.html">Home</a></li>
-                     <li>blog masonry</li>
-                 </ol>
-             </div>
-          </div>
-      </div>
-   </div><!--breadcrumbs-->
-   
     <div class="divide80"></div>
     
     <div class="blog-masonary-wrapper">
         <div class="container mas-boxes">
         
-        	<c:if test="${onairlist == null}">
-        	<h4>"현재 라이브 중인 방송이 없습니다 :) 가장먼저 공라이브를 시작해보세요"</h4>
+        	<c:if test="${onairlist == null || empty onairlist}">
+	        	<div style="width: 100%; height: 500px; align:center;">
+	        		<span style="font-size: 15pt;">"현재 라이브 중인 방송이 없습니다 :) 가장먼저 공라이브를 시작해보세요"</span>
+	        	</div>
         	</c:if>
         	<c:if test="${onairlist != null}">
         	<c:forEach var="map" items="${onairlist}">
@@ -72,13 +58,7 @@
            
                
         </div>
-        <div class="container">
-               
-            <ul class="pager">
-            <li class="previous"><a href="#">← Previous Page</a></li>
-            <li class="next"><a href="#">Next Page →</a></li>
-        </ul>
-        </div>
+       
     </div><!--masonary wrapper-->
     <div class="divide60"></div>
 
