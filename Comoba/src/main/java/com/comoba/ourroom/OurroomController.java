@@ -52,20 +52,11 @@ public class OurroomController {
 		List<HashMap<String, String>> studyroommap = service.getStudyroom(); // 스터디룸
 																				// 가져오기
 
-		MemberVO loginuser = (MemberVO) session.getAttribute("loginuser");
+		/*MemberVO loginuser = (MemberVO) session.getAttribute("loginuser");*/
 
-		/*
-		 * System.out.println("loginuser.getEmail()" + loginuser.getEmail());
-		 * 
-		 * String email = loginuser.getEmail();
-		 * 
-		 * req.setAttribute("email", email);
-		 */
-
+		
 		req.setAttribute("studyroommap", studyroommap);
-		// System.out.println("#############" +
-		// studyroommap.get(0).get("STUDYROOM_NAME"));
-
+		
 		return "ourroom/studysearch.tiles";
 	}
 

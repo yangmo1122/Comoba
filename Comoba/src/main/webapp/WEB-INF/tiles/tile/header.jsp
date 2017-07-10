@@ -146,6 +146,7 @@
                             </ul>
                         </li>
                         
+                          <c:if test="${sessionScope.loginuser.email == 'woflqh12@naver.com'}">
                         <!--관리자-->
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">관리자<i class="fa fa-angle-down"></i></a>
@@ -157,6 +158,7 @@
                                 <li><a href="<%=request.getContextPath()%>/admin/boardCnt.action">게시물 및 매출 현황(chart)</a></li>
                             </ul>
                         </li>
+                     </c:if>
        
                     </ul>
                 </div><!--/.nav-collapse -->

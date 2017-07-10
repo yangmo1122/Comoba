@@ -42,7 +42,7 @@
 <style type="text/css">
 #map {
 	width: 100%;
-	height: 600px;
+	height: 480px;
 	background-color: grey;
 }
 /* Optional: Makes the sample page fill the window. */
@@ -77,7 +77,7 @@ html, body {
 	<div style="width: 100%;" id="map"></div>
 
 	<div id="floating-panel" style="margin-left: 85%; margin-top: 1%;">
-		<input id="address" type="text" value="당산"
+		<input id="address" type="text" value="당산역"
 			onkeypress="if( event.keyCode==13 ){goSearch();}"> <input
 			id="submit" type="button" value="Geocode">
 	</div>
