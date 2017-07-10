@@ -46,6 +46,12 @@
         <!-- intro 화면-->
         <link href="<%=request.getContextPath() %>/resources/assets/plugins/lightbox2/dist/css/lightbox.css" rel="stylesheet">
         
+        <style>
+.jy{
+background-color: white !important;
+}
+</style>
+        
     </head>
     <body>
         <div class="top-bar-dark">            
@@ -91,7 +97,7 @@
         </div><!--top-bar-dark end here-->
         <!--navigation -->
         <!-- Static navbar -->
-        <div class="navbar navbar-default navbar-static-top yamm sticky" role="navigation">
+        <div class="navbar navbar-default navbar-static-top yamm sticky jy" role="navigation">
             <div class="container">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
