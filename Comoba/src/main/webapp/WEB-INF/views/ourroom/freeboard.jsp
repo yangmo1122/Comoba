@@ -102,16 +102,16 @@
         </div>
        
        
-        <section class="numbers" style="background-image: url('<%= request.getContextPath()%>/resources/img/sm/number.jpg')"; >
+        <section class="numbers" style="background-image: url('<%= request.getContextPath()%>/resources/img/sm/pexels-photo-27665.jpg')"; >
             <div class="container"  style="margin-left: 30%;" >
                     <div class="col-sm-6 col-md-3 margin-b-30 text-center">
                         <i class="ti-stats-up"></i>
-                        <h1 class="counter" style="color: black;">${totalCount}</h1>
+                        <h1 class="counter" style="color: white;">${totalCount}</h1>
                         <p>Total board</p>
                     </div><!--col-->
                     <div class="col-sm-6 col-md-3 margin-b-30 text-center">
                         <i class="ti-face-smile"></i>
-                        <h1 class="counter" style="color: black;">${memberCount}</h1>
+                        <h1 class="counter" style="color: white;">${memberCount}</h1>
                         <p>Members</p>
                     </div><!--col-->
                 </div><!--row-->
@@ -133,7 +133,7 @@
 												</select>
                       </div><div style="float: left; margin-left: 1%; margin-top: 2%;">
                            <input type="text"  placeholder="Search here" name="sh_search" id="sh_search" size="50px;" />
-                                  </div><div style="float: left; margin-left: 1%; margin-top: 2%;"">                     
+                                  </div><div style="float: left; margin-left: 1%; margin-top: 2%;">                     
                                    <span class="input-group-btn"  style="float: left;">
                                                             <button type="submit"  onClick="goSearch();"class="btn btn-sm btn-primary">
                                                                 Search
