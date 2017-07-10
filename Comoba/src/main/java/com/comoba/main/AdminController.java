@@ -22,7 +22,6 @@ import com.comoba.admin.model.AdminBoardVO;
 import com.comoba.admin.model.AdminMemberVO;
 import com.comoba.admin.service.AdminService;
 import com.comoba.common.FileManager;
-import com.comoba.common.ThumbnailManager;
 
 
 @Controller

@@ -19,10 +19,8 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.comoba.common.FileManager;
 import com.comoba.common.GoogleMail;
-import com.comoba.common.ThumbnailManager;
 import com.comoba.main.model.MemberVO;
 import com.comoba.main.service.MainService;
-import com.comoba.story.model.StoryVO;
 
 @Controller
 @Component
@@ -578,7 +576,7 @@ public class MainController {
 		if (sm_switch != null && Integer.parseInt(sm_count) != 0) {
 			System.out.println("리셋 눌렀으니 이걸 넣어주렴 sm_count=" + sm_count);
 
-			int n = service.addCount(addcntmap);
+		//	int n = service.addCount(addcntmap);
 			loginuser = service.getLoginMember(email);
 			session.setAttribute("loginuser", loginuser);
 
