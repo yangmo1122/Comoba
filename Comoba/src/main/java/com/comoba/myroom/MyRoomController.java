@@ -640,8 +640,10 @@ public class MyRoomController {
     	//내 게시물, 나만 보는 게시물 가져오기
     	
     	List<HashMap<String, String>> mystoryList = service.myStoryList(memberno);
-		
+    	List<HashMap<String, String>> mysecretstoryList = service.mysecretStoryList(memberno);
+    	
 		req.setAttribute("mystoryList", mystoryList);
+		req.setAttribute("mysecretstoryList", mysecretstoryList);
 
 		req.setAttribute("show", show);
     	

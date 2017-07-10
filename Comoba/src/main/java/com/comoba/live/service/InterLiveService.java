@@ -64,5 +64,7 @@ public interface InterLiveService {
 	List<MemberVO> followingInfo(int memberno);   // 날 팔로우 한 사람 정보 가져오기
 	
 	List<HashMap<String, String>> myStoryList(int memberno); // 글 뽑기
+	
+	List<HashMap<String, String>> mysecretStoryList(int memberno); // 글 뽑기(비밀)
 	//양모 내방 작성 끝 -------------------------------------------------------
 }

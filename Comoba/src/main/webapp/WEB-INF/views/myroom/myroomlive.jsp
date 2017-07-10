@@ -125,6 +125,11 @@
    line-height: 30px;
 }
 
+.commentcss{
+	color: white;
+	margin-left: 35px;
+}
+
 
 </style>
 <script type="text/javascript">
@@ -335,14 +340,14 @@ function goDelete(){
    
    <div class="divide30" style="clear: both;"></div>
    <c:if test="${membervo.comments == null}">
-      <span>${membervo.nickname}님의 라이브페이지입니다.</span>
+      <span class="commentcss">${membervo.nickname}님의 라이브페이지입니다.</span>
    </c:if>
    <c:if test="${membervo.comments != null}">
-      <span>${membervo.comments}</span>
+      <span class="commentcss">${membervo.comments}</span>
    </c:if>
    
-      <div class="divide60"><a data-toggle="modal" data-target="#myroomlivewrite" data-dismiss="modal"><span style="float: right">
-            <img src="<%= request.getContextPath() %>/resources/img/sm/edit.png" width="auto;" height="27px;"></span></a>
+      <div class="divide60"><a data-toggle="modal" data-target="#myroomlivewrite" data-dismiss="modal" style="cursor: pointer;"><span style="float: right">
+            작성하기<img src="<%= request.getContextPath() %>/resources/images/pencil.png" width="auto;" height="22px;" style="margin-bottom: 5px;"></span></a>
                                         
         </div>
       

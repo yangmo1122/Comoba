@@ -48,8 +48,7 @@
 	
 	
 	
-	
-	<!-- 스토리 리스트(재민이가 수정해줘야함) -->
+	<!-- 내 스토리 리스트(공개글) -->
     <resultMap type="java.util.HashMap" id="getMyListStoryMap">
         <result property="STORY_NO"             column="story_no"          javaType="String" />
       <result property="NICKNAME"             column="nickname"          javaType="String" />
@@ -65,7 +64,26 @@
                                                                      from cmb_story_file
                                                                      group by story_no)) B
                                              on A.story_no = B.story_no
-                                              where memberno_fk = #{memberno}
+                                              where memberno_fk = #{memberno} and story_publicstatus = 1
+   </select>
+   
+   <!-- 내 스토리 리스트(비밀글) -->
+    <resultMap type="java.util.HashMap" id="getMysecretListStoryMap">
+        <result property="STORY_NO"             column="story_no"          javaType="String" />
+      <result property="NICKNAME"             column="nickname"          javaType="String" />
+      <result property="STORY_PUBLICSTATUS"      column="story_publicStatus" javaType="String" />
+       <result property="THUMBNAILFILENAME"        column="thumbnailFileName"    javaType="String" />
+   </resultMap>
+   <select id="mysecretStoryList" resultMap="getMysecretListStoryMap" parameterType="int">
+      select A.story_no, A.nickname, A.story_publicStatus, B.thumbnailfilename
+                                               from view_cmb_storyinfo A left join
+                                                 ( select *
+                                                   from cmb_story_file
+                                                   where file_no in (select min(file_no)
+                                                                     from cmb_story_file
+                                                                     group by story_no)) B
+                                             on A.story_no = B.story_no
+                                              where memberno_fk = #{memberno} and story_publicstatus = 0
    </select>
    
 	

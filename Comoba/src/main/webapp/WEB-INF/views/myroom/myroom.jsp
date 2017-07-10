@@ -230,8 +230,8 @@
    <span>${membervo.comments}</span>
    </c:if>
       
-      <div class="divide60"><a href="/main/myroom/storywrite.action"><span style="float: right">
-                                        <img src="<%= request.getContextPath() %>/resources/img/sm/edit.png" width="auto;" height="27px;"></span></a>
+      <div class="divide60"><a href="/main/myroom/storywrite.action" ><span style="float: right;">
+             작성하기<img src="<%= request.getContextPath() %>/resources/images/pencil.png" width="auto;" height="22px;" style="margin-bottom: 5px;"></span></a>
                                         
         </div>
       
@@ -307,18 +307,16 @@
     --%>
    
                       <div class="row">
+                      <c:if test="${mystoryList != null || not empty mystoryList}">
+                      <c:forEach var="mystory" items="${mystoryList}">
                           <div class="myroom_story">
                               <a class="gallery-box" href="#" data-lightbox="gallery">
-                                  <img src="<%= request.getContextPath() %>/resources/images/myroom/공부3.jpg" alt="" class="img-responsive">
+                                  <img src="<%=request.getContextPath() %>/resources/files/${mystory.THUMBNAILFILENAME}" alt="" class="img-responsive">
                                   
                               </a>
                           </div>
-                          <div class="myroom_story">
-                              <a class="gallery-box" href="#" data-lightbox="gallery">
-                                  <img src="<%= request.getContextPath() %>/resources/images/myroom/공부3.jpg" alt="" class="img-responsive">
-                                 
-                              </a>
-                          </div>
+                      </c:forEach>  
+                      </c:if>  
                       </div>
                       
                   </div>
@@ -345,17 +343,19 @@
    </c:forEach>           
     --%> 
                         
-                        
-                           <div class="row">
-                          
+                     <div class="row">
+                      <c:if test="${mysecretstoryList != null || not empty mysecretstoryList}">
+                      <c:forEach var="mysecretstory" items="${mysecretstoryList}">
                           <div class="myroom_story">
                               <a class="gallery-box" href="#" data-lightbox="gallery">
-                                  <img src="<%= request.getContextPath() %>/resources/images/myroom/공부3.jpg" alt="" class="img-responsive">
-                                 
+                                  <img src="<%=request.getContextPath() %>/resources/files/${mysecretstory.THUMBNAILFILENAME}" alt="" class="img-responsive">
+                                  
                               </a>
                           </div>
-                          
-                      </div>                    
+                      </c:forEach>  
+                      </c:if>  
+                      </div>  
+                                        
                       </div>  
                       </c:if>
                <!-- 내 팔로우 -->      
