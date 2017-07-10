@@ -831,6 +831,7 @@ TOP BARS
 
 .navbar-inverse .navbar-brand {
   font-weight: 700;
+  background-color : white !important;
   color: #fff !important;
   font-size: 30px;
   line-height: 20px;
