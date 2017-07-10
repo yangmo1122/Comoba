@@ -1,270 +1,392 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ===== #26. mapper 기본설정 ===== -->
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!-- ===== #27. 루트엘리먼트 & 네임스페이스 설정(프로젝트 전체 내에서 고유해야 한다.) ===== -->
 <mapper namespace="ourroom">
-	
-	<!-- ===== #114. 자유게시판 목록보기--> 
 
- 	<!-- <select id="boardList" resultType="com.comoba.ourroom.model.BoardVO" parameterType="java.util.HashMap">
-		select A.board_no, A.memberno_fk, B.nickname,  A.category, A.subject, A.writedate, A.readCount, A.status, A.content,   A.fk_seq , A.depthno ,  A.groupno, c.filename
-		from cmb_board A join cmb_member B 
-   on A.memberno_fk = B.memberno left outer join cmb_board_addfile c on  a.board_no= c.boardnofk
+	<!-- ===== #114. 자유게시판 목록보기 -->
+
+	<!-- <select id="boardList" resultType="com.comoba.ourroom.model.BoardVO" 
+		parameterType="java.util.HashMap"> select A.board_no, A.memberno_fk, B.nickname, 
+		A.category, A.subject, A.writedate, A.readCount, A.status, A.content, A.fk_seq 
+		, A.depthno , A.groupno, c.filename from cmb_board A join cmb_member B on 
+		A.memberno_fk = B.memberno left outer join cmb_board_addfile c on a.board_no= 
+		c.boardnofk where A.status = 1 <if test="sh_colname != null and sh_search 
+		!= null"> and ${sh_colname} like '%' || #{sh_search} || '%' </if> order by 
+		board_no desc </select> -->
+
+
+	<select id="boardList" resultType="com.comoba.ourroom.model.BoardVO"
+		parameterType="java.util.HashMap">
+		select rno , board_no, memberno_fk, nickname, category, subject,
+		writedate, readCount, status, content, fk_seq , depthno , groupno,
+		filename
+		from(
+		select rownum as rno , board_no, memberno_fk, nickname,
+		category, subject,
+		writedate, readCount, status, content, fk_seq ,
+		depthno , groupno,
+		filename
+		from( select A.board_no, A.memberno_fk,
+		B.nickname, A.category, A.subject,
+		A.writedate, A.readCount, A.status,
+		A.content, A.fk_seq , A.depthno ,
+		A.groupno, c.filename
+		from cmb_board A
+		join cmb_member B
+		on A.memberno_fk = B.memberno left outer join
+		cmb_board_addfile c on
+		a.board_no= c.boardnofk
 		where A.status = 1
 		<if test="sh_colname != null and sh_search != null">
-			and ${sh_colname} like '%' || #{sh_search} || '%'  
+			and ${sh_colname} like '%' || #{sh_search} || '%'
 		</if>
 		order by board_no desc
-		
-	</select> -->
-	
-	
-	<select id="boardList" resultType="com.comoba.ourroom.model.BoardVO" parameterType="java.util.HashMap">
-		select rno  , board_no, memberno_fk, nickname,  category, subject, writedate, readCount, status, content,   fk_seq , depthno ,  groupno, filename
-from(
-select rownum as rno , board_no, memberno_fk, nickname,  category, subject, writedate, readCount, status, content,   fk_seq , depthno ,  groupno, filename
-from( select  A.board_no, A.memberno_fk, B.nickname,  A.category, A.subject, A.writedate, A.readCount, A.status, A.content,   A.fk_seq , A.depthno ,  A.groupno, c.filename
-		from cmb_board A join cmb_member B 
-   on A.memberno_fk = B.memberno left outer join cmb_board_addfile c on  a.board_no= c.boardnofk
-		where A.status = 1
-		<if test="sh_colname != null and sh_search != null">
-			and ${sh_colname} like '%' || #{sh_search} || '%'  
-		</if>
-		order by board_no desc
-    )
-    )
-    
-	</select> 
-	
-	
-	
-	
-	<!-- ===== #114. 총 게시물 건수 구하기
-	             총 게시물 건수는 검색조건이 없을때와 있을때로 나뉘어진다. =====
-	--> 
-	<select id="getTotalCount" parameterType="java.util.HashMap" resultType="int"> 
+		)
+		)
+
+	</select>
+
+
+
+
+	<!-- ===== #114. 총 게시물 건수 구하기 총 게시물 건수는 검색조건이 없을때와 있을때로 나뉘어진다. ===== -->
+	<select id="getTotalCount" parameterType="java.util.HashMap"
+		resultType="int">
 		select count(*)
 		from cmb_board
 		where status = 1
 		<if test="sh_colname != null and sh_search != null">
 			and ${sh_colname} like '%' || #{sh_search} || '%'
 		</if>
-	
-	</select>   
 
-	
-<!-- 	===== #124. 첨부파일이 없는 글쓰기(답변형 게시판) ===== 
-	            먼저 위의 #58. 글쓰기 부분을 주석처리한 후에 아래처럼 한다.
-	  -->
+	</select>
+
+
+	<!-- ===== #124. 첨부파일이 없는 글쓰기(답변형 게시판) ===== 먼저 위의 #58. 글쓰기 부분을 주석처리한 후에 
+		아래처럼 한다. -->
 	<insert id="add" parameterType="com.comoba.ourroom.model.BoardVO">
-        <if test='fk_seq.equals("")'>	
-		insert into cmb_board(board_no, memberno_fk, category, nickname , subject, writedate, readCount,status, content, fk_seq , depthno ,  groupno)
-		values(#{board_no}, #{memberno_fk}, #{category},#{nickname},  #{subject}, default, default, default, #{content}, default, default, default) 
+		<if test='fk_seq.equals("")'>
+			insert into cmb_board(board_no, memberno_fk, category,
+			nickname , subject,
+			writedate, readCount,status, content, fk_seq ,
+			depthno , groupno)
+			values(#{board_no}, #{memberno_fk},
+			#{category},#{nickname},
+			#{subject}, default, default, default,
+			#{content}, default, default,
+			default)
 		</if>
-		
+
 		<if test='!fk_seq.equals("")'>
-	insert into cmb_board(board_no, memberno_fk, category, nickname , subject, writedate, readCount,status, content ,fk_seq , depthno ,  groupno)
-		values(#{board_no}, #{memberno_fk}, #{category}, #{nickname}, #{subject}, default, default, default, #{content}, #{fk_seq}, #{depthno}, #{groupno}) 
-			</if>
+			insert into cmb_board(board_no, memberno_fk, category,
+			nickname , subject,
+			writedate, readCount,status, content ,fk_seq ,
+			depthno , groupno)
+			values(#{board_no}, #{memberno_fk}, #{category},
+			#{nickname},
+			#{subject}, default, default, default, #{content},
+			#{fk_seq},
+			#{depthno}, #{groupno})
+		</if>
 	</insert>
-	
-	<!-- ===== #139. 첨부파일이 있는 글쓰기(답변형 게시판) =====  -->
-	 
+
+	<!-- ===== #139. 첨부파일이 있는 글쓰기(답변형 게시판) ===== -->
+
 	<insert id="add_withFile" parameterType="com.comoba.ourroom.model.BoardVO">
-        <if test='fk_seq.equals("")'>	
-		insert into cmb_board_addfile(addfile_no, boardnofk, fileName, orgFilename, fileSize)
-		values(seq_cmb_board_addfile.nextval, #{board_no}, #{fileName}, #{orgFilename}, #{fileSize}) 
+		<if test='fk_seq.equals("")'>
+			insert into cmb_board_addfile(addfile_no, boardnofk,
+			fileName, orgFilename,
+			fileSize)
+			values(seq_cmb_board_addfile.nextval,
+			#{board_no}, #{fileName}, #{orgFilename}, #{fileSize})
 		</if>
-		
+
 		<if test='!fk_seq.equals("")'>
-	insert into cmb_board_addfile(board_no, memberno_fk, category,  nickname ,subject, writedate, readCount,status, content,  fk_seq , depthno ,  groupno)
-		values(seq_cmb_board_addfile.nextval, #{memberno_fk}, #{category}, #{nickname},#{subject}, #{writedate}, #{readCount}, #{status}, #{content}, #{fk_seq}, #{depthno}, #{groupno}) 
-		</if> 
+			insert into cmb_board_addfile(board_no, memberno_fk,
+			category, nickname
+			,subject, writedate, readCount,status, content,
+			fk_seq , depthno ,
+			groupno)
+			values(seq_cmb_board_addfile.nextval,
+			#{memberno_fk}, #{category}, #{nickname},#{subject}, #{writedate},
+			#{readCount}, #{status}, #{content}, #{fk_seq}, #{depthno},
+			#{groupno})
+		</if>
 	</insert>
-	
-		<!-- ==== 게시판 작성전 시퀀스 번호 가져오기 ===  -->
-	
+
+	<!-- ==== 게시판 작성전 시퀀스 번호 가져오기 === -->
+
 	<select id="getSequenceno" resultType="int">
-	    select seq_cmb_board.nextval <!-- 시퀀스이름바꿔주여됭 -->
+		select seq_cmb_board.nextval <!-- 시퀀스이름바꿔주여됭 -->
 		from dual
 	</select>
-	
-	
+
+
 	<!-- ===== #123. spring_tblBoard 테이블에서 groupno 컬럼의 최대값 구하기 ===== -->
 	<select id="getGroupMaxno" resultType="int">
-	    select nvl(max(groupno), 0)
+		select nvl(max(groupno),
+		0)
 		from cmb_board
 	</select>
-	
-	
-	
+
+
+
 	<!-- ===== #66. 글 1개를 볼때 조회수(readCount) 1증가 시키기 ===== -->
 	<update id="setAddReadCount" parameterType="String">
-		update cmb_board set readCount = readCount + 1 
+		update cmb_board set
+		readCount = readCount + 1
 		where board_no = #{board_no}
 	</update>
-	
-	<!-- ===== #143. 글 1개 보여주기 ===== -->
-		<!--  <select id="getView" parameterType="String" resultType="com.comoba.ourroom.model.BoardVO">
-		select A.board_no, A.memberno_fk, B.nickname, A.category, A.subject, A.writedate, A.readCount, A.status, A.content,   A.fk_seq , A.depthno ,  A.groupno
-			,C.fileName, C.orgFilename,C.fileSize
-			from (cmb_board A join cmb_member B on A.memberno_fk = B.memberno) left outer join cmb_board_addfile C on A.board_no = C.boardnofk
-			where A.status = 1 and rno = #{board_no} 
-			</select>  -->
 
 	<!-- ===== #143. 글 1개 보여주기 ===== -->
-		 <select id="getView" parameterType="String" resultType="com.comoba.ourroom.model.BoardVO">
-			select rno  , board_no, memberno_fk, nickname,  category, subject, writedate, readCount, status, content,   fk_seq , depthno ,  groupno, filename ,orgFilename,fileSize
-			from(
-					select rownum as rno , board_no, memberno_fk, nickname,  category, subject, writedate, readCount, status, content,   fk_seq , depthno ,  groupno, filename ,orgFilename,fileSize
-					from( select  A.board_no, A.memberno_fk, B.nickname,  A.category, A.subject, A.writedate, A.readCount, A.status, A.content,   A.fk_seq , A.depthno ,  A.groupno, c.filename ,c.orgFilename,c.fileSize
-							from cmb_board A join cmb_member B 
-					   on A.memberno_fk = B.memberno left outer join cmb_board_addfile c on  a.board_no= c.boardnofk
-							where A.status = 1
-							order by board_no desc
-			   	 )
-			   )
-			    where rno= #{rno}
-			</select> 
-	<!-- count 가져오기  -->
-	
- <select id="getCount" resultType="String">
-		select count(*) 
-     		from(
-					select rownum as rno , board_no, memberno_fk, nickname,  category, subject, writedate, readCount, status, content,   fk_seq , depthno ,  groupno, filename ,orgFilename,fileSize
-					from( select A.board_no, A.memberno_fk, B.nickname,  A.category, A.subject, A.writedate, A.readCount, A.status, A.content,   A.fk_seq , A.depthno ,  A.groupno, c.filename ,c.orgFilename,c.fileSize
-							from cmb_board A join cmb_member B 
-					   on A.memberno_fk = B.memberno left outer join cmb_board_addfile c on  a.board_no= c.boardnofk
-							where A.status = 1
-							order by board_no desc
-			   	 )
-			   )
-			</select> 
-			
-			
+	<!-- <select id="getView" parameterType="String" resultType="com.comoba.ourroom.model.BoardVO"> 
+		select A.board_no, A.memberno_fk, B.nickname, A.category, A.subject, A.writedate, 
+		A.readCount, A.status, A.content, A.fk_seq , A.depthno , A.groupno ,C.fileName, 
+		C.orgFilename,C.fileSize from (cmb_board A join cmb_member B on A.memberno_fk 
+		= B.memberno) left outer join cmb_board_addfile C on A.board_no = C.boardnofk 
+		where A.status = 1 and rno = #{board_no} </select> -->
+
+	<!-- ===== #143. 글 1개 보여주기 ===== -->
+	<select id="getView" parameterType="String"
+		resultType="com.comoba.ourroom.model.BoardVO">
+		select rno , board_no, memberno_fk, nickname, category,
+		subject, writedate,
+		readCount, status, content, fk_seq , depthno ,
+		groupno, filename
+		,orgFilename,fileSize
+		from(
+		select rownum as rno ,
+		board_no, memberno_fk, nickname, category, subject,
+		writedate,
+		readCount, status, content, fk_seq , depthno , groupno,
+		filename
+		,orgFilename,fileSize
+		from( select A.board_no, A.memberno_fk,
+		B.nickname, A.category, A.subject,
+		A.writedate, A.readCount, A.status,
+		A.content, A.fk_seq , A.depthno ,
+		A.groupno, c.filename
+		,c.orgFilename,c.fileSize
+		from cmb_board A join cmb_member B
+		on
+		A.memberno_fk = B.memberno left outer join cmb_board_addfile c on
+		a.board_no= c.boardnofk
+		where A.status = 1
+		order by board_no desc
+		)
+		)
+		where rno= #{rno}
+	</select>
+	<!-- count 가져오기 -->
+
+	<select id="getCount" resultType="String">
+		select count(*)
+		from(
+		select
+		rownum as rno , board_no, memberno_fk, nickname, category, subject,
+		writedate, readCount, status, content, fk_seq , depthno , groupno,
+		filename ,orgFilename,fileSize
+		from( select A.board_no, A.memberno_fk,
+		B.nickname, A.category, A.subject,
+		A.writedate, A.readCount, A.status,
+		A.content, A.fk_seq , A.depthno ,
+		A.groupno, c.filename
+		,c.orgFilename,c.fileSize
+		from cmb_board A join cmb_member B
+		on
+		A.memberno_fk = B.memberno left outer join cmb_board_addfile c on
+		a.board_no= c.boardnofk
+		where A.status = 1
+		order by board_no desc
+		)
+		)
+	</select>
+
+
 	<!-- ===== QNA 글 보여주기 ==== -->
-		 <select id="Qnastory"  resultType="com.comoba.ourroom.model.QnaVO">
-			select *
-			from cmb_QNA
-			where category = '1'
-				</select>  
+	<select id="Qnastory" resultType="com.comoba.ourroom.model.QnaVO">
+		select *
+		from cmb_QNA
+		where
+		category = '1'
+	</select>
 
-	<!-- ===== QNA 글 보여주기 ===== 되는것-->
-		 <select id="Qnalive"  resultType="com.comoba.ourroom.model.QnaVO">
-			select *
-			from cmb_QNA
-			where category = '2'
-		</select> 
-
-
-	<!-- ===== QNA 글 보여주기 ===== 되는것-->
-		 <select id="qnaList"  resultType="com.comoba.ourroom.model.QnaVO">
-			select *
-			from cmb_QNA
-			where category = '3'
-				</select> 
-	
-<!-- ===== QNA 글 보여주기 ===== -->
-		 <select id="Qnaourroom"  resultType="com.comoba.ourroom.model.QnaVO">
-			select *
-			from cmb_QNA
-			where category = '4'
-				</select> 
+	<!-- ===== QNA 글 보여주기 ===== 되는것 -->
+	<select id="Qnalive" resultType="com.comoba.ourroom.model.QnaVO">
+		select *
+		from cmb_QNA
+		where
+		category = '2'
+	</select>
 
 
-	
+	<!-- ===== QNA 글 보여주기 ===== 되는것 -->
+	<select id="qnaList" resultType="com.comoba.ourroom.model.QnaVO">
+		select *
+		from cmb_QNA
+		where
+		category = '3'
+	</select>
+
+	<!-- ===== QNA 글 보여주기 ===== -->
+	<select id="Qnaourroom" resultType="com.comoba.ourroom.model.QnaVO">
+		select *
+		from cmb_QNA
+		where
+		category = '4'
+	</select>
+
+
+
 	<!-- ===== #75. 글 1개 수정하기 ===== -->
 	<update id="updateContent" parameterType="java.util.HashMap">
-		update cmb_board set subject = #{subject}
-		                   , content = #{content}
-	    where board_no = #{board_no}
+		update cmb_board set
+		subject = #{subject}
+		, content = #{content}
+		where board_no = #{board_no}
 	</update>
-			
-			
-			
+
+
+
 	<!-- ===== #75. 글 1개 삭제하기 ===== -->
 	<update id="del" parameterType="java.util.HashMap">
 		update cmb_board set status = 0
-		 where board_no = #{board_no}
+		where board_no = #{board_no}
 	</update>
-					
+
 
 	<!-- ===== #87. 댓글쓰기 ===== -->
-    <insert id="addComment" parameterType="com.comoba.ourroom.model.CommentVO">
-    	insert into cmb_comment(comment_no, memberno_fk, together_no, boardtype, comment_content, comment_date, comment_status)
-        values(seq_cmb_comment.nextval, #{memberno_fk}, #{together_no}, #{boardtype}, #{comment_content}, default, default)
-    </insert>
-    
+	<insert id="addComment" parameterType="com.comoba.ourroom.model.CommentVO">
+		insert into
+		cmb_comment(comment_no, memberno_fk, together_no, boardtype,
+		comment_content, comment_date, comment_status)
+		values(seq_cmb_comment.nextval, #{memberno_fk}, #{together_no},
+		#{boardtype}, #{comment_content}, default, default)
+	</insert>
+
 	<!-- ===== #92. 댓글내용 보여주기 ===== -->
-	<select id="listComment" parameterType="String" resultType="com.comoba.ourroom.model.CommentVO"> 
-		select comment_no, memberno_fk, together_no, boardtype, comment_content 
-		     , comment_date , comment_status  
+	<select id="listComment" parameterType="String"
+		resultType="com.comoba.ourroom.model.CommentVO">
+		select comment_no, memberno_fk, together_no, boardtype,
+		comment_content
+		, comment_date , comment_status
 		from cmb_comment
-		where comment_status = 1 and together_no = #{together_no}
-		order by comment_no desc
-	</select>  
-	
-<!-- ===== #92. 댓글테이블에 있는 댓글을 쓴 회원번호를 가져와서 닉네임 보여주기 ===== -->
-		<select id="getnickname" parameterType="int" resultType="String" >
-			select nickname
-			from cmb_member
-			where memberno =  #{num}
-		</select>
-			
-				
+		where
+		comment_status = 1 and together_no = #{together_no}
+		order by comment_no
+		desc
+	</select>
+
+	<!-- ===== #92. 댓글테이블에 있는 댓글을 쓴 회원번호를 가져와서 닉네임 보여주기 ===== -->
+	<select id="getnickname" parameterType="int" resultType="String">
+		select
+		nickname
+		from cmb_member
+		where memberno = #{num}
+	</select>
+
+
 	<!-- ===== #75. 댓글 1개 삭제하기 ===== -->
 	<update id="commentdel" parameterType="java.util.HashMap">
-		update cmb_comment set comment_status = 0
-	    where comment_no = #{comment_no}
-	</update>
-	
-	<!--  댓글 1개 수정하기 -->
-	<update id="commentedit" parameterType="java.util.HashMap">
-		update  cmb_comment set comment_content = #{comment_content}
-		 where comment_no = #{comment_no}
-	</update> 
-<!-- 	 
-	 <resultMap type="java.util.HashMap" id="commentmap">
-	 	<result property="LIVE_NO" column="live_no" javaType="int" />
-	 	<result property="LIVE_NO" column="live_no" javaType="int" />
-	 	<result property="LIVE_NO" column="live_no" javaType="int" />
-	 </resultMap>
-	댓글수정하기
-	<select id="getcommentselectone" parameterType="java.util.HashMap" resultMap="commentmap">
-		select *
-		from cmb_comment
+		update cmb_comment set
+		comment_status = 0
 		where comment_no = #{comment_no}
-	</select>
-	
-	  -->
-	
-		<!-- =====  Q&A 검색 (검색조건이 있는경우와 없는경우로 나뉜다.)--> 
-	<select id="getqnaTotalCount" parameterType="java.util.HashMap" resultType="int"> 
+	</update>
+
+	<!-- 댓글 1개 수정하기 -->
+	<update id="commentedit" parameterType="java.util.HashMap">
+		update cmb_comment set
+		comment_content = #{comment_content}
+		where comment_no = #{comment_no}
+	</update>
+	<!-- <resultMap type="java.util.HashMap" id="commentmap"> <result property="LIVE_NO" 
+		column="live_no" javaType="int" /> <result property="LIVE_NO" column="live_no" 
+		javaType="int" /> <result property="LIVE_NO" column="live_no" javaType="int" 
+		/> </resultMap> 댓글수정하기 <select id="getcommentselectone" parameterType="java.util.HashMap" 
+		resultMap="commentmap"> select * from cmb_comment where comment_no = #{comment_no} 
+		</select> -->
+
+	<!-- ===== Q&A 검색 (검색조건이 있는경우와 없는경우로 나뉜다.) -->
+	<select id="getqnaTotalCount" parameterType="java.util.HashMap"
+		resultType="int">
 		select count(*)
 		from cmb_qna
-		where 
+		where
 		<if test="sh_qnacolname != null and sh_qnasearch != null">
 			${sh_qnacolname} like '%' || #{sh_qnasearch} || '%'
 		</if>
-				
-			<!-- 	
-			select*
-		  from cmb_qna
-				where title like '%' || '제목' || '%';
-			 -->
-	</select>   
-	
-	
-	<select id="getmemberCount"  resultType="int"> 
-	select count(*)
-	 from cmb_member 
-	 where status = 1
-	
-	</select>  
-	
-	
+
+		<!-- select* from cmb_qna where title like '%' || '제목' || '%'; -->
+	</select>
+
+
+	<select id="getmemberCount" resultType="int">
+		select count(*)
+		from
+		cmb_member
+		where status = 1
+
+	</select>
+
+
+	<!-- 스터디룸 가져오기 -->
+	<resultMap type="java.util.HashMap" id="studyroommap">
+		<result property="STUDYROOM_NAME" column="studyroom_name"
+			javaType="String" />
+		<result property="ADDR1" column="addr1" javaType="String" />
+		<result property="ADDR2" column="addr1" javaType="String" />
+		<result property="HP" column="hp" javaType="String" />
+		<result property="COST" column="cost" javaType="String" />
+		<result property="TITLE" column="title" javaType="String" />
+		<result property="LONGITUDE" column="longitude" javaType="String" />
+		<result property="LATITUDE" column="latitude" javaType="String" />
+	</resultMap>
+	<select id="getStudyroom" resultMap="studyroommap">
+
+		select * from cmb_studyroom
+		where status = 1
+
+	</select>
+
+	<!-- 재연 통합1 -->
+	<!-- 스터디룸 리스트 ajax로 가져오기 -->
+	<resultMap type="java.util.HashMap" id="SearchMarkerMap">
+		<result property="RNO" column="rno" javaType="String" />
+		<result property="STUDYROOM_NO" column="studyroom_no" javaType="String" />
+		<result property="STUDYROOM_NAME" column="studyroom_name"
+			javaType="String" />
+		<result property="ADDR1" column="addr1" javaType="String" />
+		<result property="ADDR2" column="addr2" javaType="String" />
+		<result property="HP" column="hp" javaType="String" />
+		<result property="COST" column="cost" javaType="String" />
+		<result property="TITLE" column="title" javaType="String" />
+	</resultMap>
+	<select id="searchmarkerList" parameterType="java.util.HashMap"
+		resultMap="SearchMarkerMap">
+		select rno ,STUDYROOM_NO , STUDYROOM_NAME, ADDR1, ADDR2, HP,
+		COST , TITLE
+		from(
+		select rownum as rno ,V.STUDYROOM_NO ,
+		V.STUDYROOM_NAME, V.ADDR1, V.ADDR2,
+		V.HP, V.COST , V.TITLE
+		from (
+		select
+		* from cmb_studyroom
+		where (latitude between #{longitude} - 0.0025 and
+		#{longitude} + 0.0025)
+		and (longitude between #{latitude} - 0.01 and
+		#{latitude} + 0.01)
+		and status = 1
+		)V
+		)T
+	</select>
+
+
+
+
 </mapper>
 
 
