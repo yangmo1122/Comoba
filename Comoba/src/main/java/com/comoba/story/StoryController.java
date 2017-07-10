@@ -15,7 +15,6 @@ import org.apache.ibatis.session.RowBounds;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,14 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.comoba.common.FileManager;
-import com.comoba.common.ThumbnailManager;
+import com.comoba.main.ThumbnailManager;
 import com.comoba.main.model.MemberVO;
 import com.comoba.main.service.MainService;
 import com.comoba.ourroom.model.CommentVO;
 import com.comoba.story.service.StoryService;
 
-
-import com.comoba.ourroom.service.OurroomService;
 
 @Controller
 @Component
@@ -194,17 +191,23 @@ public class StoryController{
 	@RequestMapping(value="/story/story.action", method={RequestMethod.GET} ) 
 	public String listStory(HttpServletRequest req, HttpSession session) {
 	
+		String colname = req.getParameter("colname");
     	String search = req.getParameter("search");
     	
     	System.out.println("search@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@search" + search);
+    	System.out.println("search@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@colname" + colname);
     	
     	session.setAttribute("readCountPermission", "yes");
     	
     	HashMap<String, String> searchmap = new HashMap<String, String>();
+    	searchmap.put("colname", colname);
     	searchmap.put("search", search);
 		
 		// 스토리 리스트
 		List<HashMap<String, String>> storyList = service.getListStory(searchmap);
+	
+
+		
 		req.setAttribute("storyList", storyList);
 	
     	
@@ -378,7 +381,7 @@ public class StoryController{
 		String pageNo = req.getParameter("pageNo");
 
 		int totalCount = 0; // 총게시물 건수
-		int sizePerPage = 10; // 한 페이지당 보여줄 게시물 갯수 (예: 3, 5, 10)
+		int sizePerPage = 2; // 한 페이지당 보여줄 게시물 갯수 (예: 3, 5, 10)
 		int currentShowPageNo = 1; // 현재 보여주는 페이지 번호로서, 초기치로는 1페이지로 설정함.
 		int totalPage = 0; // 총페이지수(웹브라우저상에 보여줄 총 페이지 갯수)
 		int start = 0; // 시작 인덱스
@@ -430,7 +433,7 @@ public class StoryController{
 		} else {
 			
 				pagebar += String.format(
-						"&nbsp;&nbsp;<a href='/main/story/storydetail.action?pageNo=%d'>[이전%d페이지]</a>&nbsp;&nbsp;",
+						"&nbsp;&nbsp;<a href='/main/story/storydetail.action?story_no="+story_no+"&pageNo=%d'>[이전%d페이지]</a>&nbsp;&nbsp;",
 						startPageNo - 1, blocksize);	
 		}
 		// **** 이전5페이지 와 다음5페이지 사이에 들어가는 것을 만드는 것
@@ -444,7 +447,7 @@ public class StoryController{
 			} else {
 				
 					pagebar += String.format(
-							"&nbsp;&nbsp;<a href='/main/story/storydetail.action?pageNo=%d'><&nbsp;&nbsp;%d&nbsp;&nbsp;></a>&nbsp;&nbsp;",
+							"&nbsp;&nbsp;<a href='/main/story/storydetail.action?story_no="+story_no+"&pageNo=%d'><&nbsp;&nbsp;%d&nbsp;&nbsp;></a>&nbsp;&nbsp;",
 							startPageNo, startPageNo); 
 			}
 
@@ -797,99 +800,19 @@ public class StoryController{
     	}
    
     
- // ===== 스터디룸화면 만들기
- 	@RequestMapping(value = "/story/studyroom.action", method = { RequestMethod.GET })
- 	public String studyroom(HttpServletRequest req) {
-
- 		String studyroom_no = req.getParameter("studyroom_no");
- 		
- 		System.out.println("studyroom_no : "+studyroom_no);
- 			
- 		HashMap<String, Object> map = service.detailView(studyroom_no); // 번호로 상세 내용 담아오기
- 		
- 		// System.out.println(map.get("STUDYROOM_NAME") +" < 이거 나오니 map.get('STUDYROOM_NAME')");
- 		
- 		
- 		
- 		if ( map != null) { // 번호로 상세 내용 이 있다면
- 			
- 			List<HashMap<String, Object>> imglist = service.getImgList(studyroom_no); // 이미지를 가져오자
- 			
- 			if(imglist != null){ //  이미지도 있다면 보내주자
- 				
- 				req.setAttribute("map", map);
- 				
- 				req.setAttribute("imglist", imglist);
- 				
- 				
- 				return "story/studyroom.tiles";
- 				// /Comoba/src/main/webapp/WEB-INF/views/story/studyroom.jsp 파일을 생성한다.
- 				
- 				
- 			}
- 			else {// 이미지가 없다면  
- 				
- 				String msg = "잘못된 페이지 입니다.!!";
- 				String loc = "javascript:history.back();";
- 				
- 				req.setAttribute("msg", msg);
- 				req.setAttribute("loc", loc);
-
- 				return "msg.notiles";
- 					
- 				
- 			}
- 			
- 			
- 			
- 			
- 		}
- 		else { //번호 된 상세 내용이 없다면
- 			
- 			
- 			String msg = "잘못된 페이지 입니다.!!";
- 			String loc = "javascript:history.back();";
- 			
- 			req.setAttribute("msg", msg);
- 			req.setAttribute("loc", loc);
-
- 			return "msg.notiles";
- 			
- 			
- 		} // end of if~else
- 	
- 	
- 	}// studyroom(HttpServletRequest req) { ---------------
-
-
- 	
- 	 // ===== 스터디룸 삭제 하기
- 	@RequestMapping(value = "/story/studyroomDel.action", method = { RequestMethod.GET })
- 	public String studyroomDel(HttpServletRequest req) {
-
- 		String studyroom_no = req.getParameter("studyroom_no");
- 		
- 		System.out.println("studyroom_no : "+studyroom_no);
- 			
- 		int n = service.studyroomDel(studyroom_no);
- 		
- 		req.setAttribute("n", n);
-
- 		
-			String msg = "스터디룸 삭제 성공!";
-			String loc = "/main/ourroom/studysearch.action";
-			
-			req.setAttribute("msg", msg);
-			req.setAttribute("loc", loc);
-
-			return "msg.notiles";
-			
 	
- 	}// studyroom(HttpServletRequest req) { ---------------
 
+	// ===== 스터디룸화면 만들기
+	@RequestMapping(value = "/story/studyroom.action", method = { RequestMethod.GET })
+	public String studyroom(HttpServletRequest req) {
 
- 	
- 	
+		return "story/studyroom.tiles";
+		// /Comoba/src/main/webapp/WEB-INF/views/story/studyroom.jsp 파일을 생성한다.
+	}
+	
+	
+	
+	
 	
 	
 

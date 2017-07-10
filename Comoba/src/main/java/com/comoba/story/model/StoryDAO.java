@@ -62,6 +62,9 @@ public class StoryDAO implements InterStoryDAO {
 	@Override
 	public List<HashMap<String, String>> getListStory(HashMap<String, String> searchmap) {
 		List<HashMap<String, String>> storyList = sqlsession.selectList("story.getListStory", searchmap);
+		
+		System.out.println("storyList@@@@ 검색" + storyList);
+		
 		return storyList;
 	}
 
@@ -254,27 +257,6 @@ public class StoryDAO implements InterStoryDAO {
 		
 		return n;
 		
-	}
-
-	@Override
-	public HashMap<String, Object> detailView(String studyroom_no) {
-		
-		HashMap<String, Object> map = sqlsession.selectOne("story.detailView", studyroom_no);
-		return map;
-	}
-
-
-	@Override
-		public List<HashMap<String, Object>> getImgList(String studyroom_no) {
-			List<HashMap<String, Object>> imglist = sqlsession.selectList("story.getImgList", studyroom_no);
-			return imglist;
-		}
-
-	@Override
-	public int studyroomDel(String studyroom_no) {
-		int n = sqlsession.update("story.studyroomDel", studyroom_no );
-		
-		return n;
 	}
 
 

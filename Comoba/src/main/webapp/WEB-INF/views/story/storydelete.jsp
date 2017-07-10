@@ -59,14 +59,30 @@
 <body>
 
 <div class="divide80"></div>
-
  <div class="blog-masonary-wrapper" >
- <form name="deleteFrm" enctype="multipart/form-data"> 
-                <div class="mas-boxes-inner"style=" width: 880px; height: 480px; margin-left: 300px;" >
-                <div id="myCarousel" class="carousel slide" data-ride="carousel"> 
+ 
+ 	<form name="deleteFrm" enctype="multipart/form-data"> 
+ 	
+ 		<div class="container mas-boxes" style="width: 880px; height: 480px;">
+ 		
+                <div class="mas-boxes-inner" style="width: 49.5%; height: 480px; float: left;" >
+    			<div style="float: left;">
+               		<img src="<%= request.getContextPath() %>/resources/img/user.png" alt="" style=" width:40px; height:40px; margin-top: 15px; margin-left: 15px; "> 
+               	</div>
+               	
+               	<div style="margin-top: 20px; float: left;">
+               		
+               			&nbsp;&nbsp;<span style="font-weight: bold;">${storyDetailmap.NICKNAME}</span>
+               		
+               	</div>
+    
+    	<div class="mas-blog-inner" style="padding: 10px; margin-top: 15% " > 
+    	           
+	<div id="myCarousel" class="carousel slide" data-ride="carousel"> 
 	 
                   
 <!-- Wrapper for slides -->
+	
 
 <div class="carousel-inner" role="listbox" style="height:397px; width:400px;">
 	<c:forEach var="storyDetailImagemap" items="${storyDetailImageList}" varStatus="status">
@@ -99,6 +115,7 @@
       
     </a>	
 	</div>
+			</div>
                
                     <div class="space-30" style="width: 100%;"></div>
                     	<div class="container" style="width: 100%; height: auto;">
@@ -109,14 +126,56 @@
                   
                     	</div>
               
-                    <button type="button" onClick="goDelete();" class="btn btn-primary btn-lg rounded">삭제</button>
-					<button type="button" onClick="javascript:history.back();" class="btn btn-danger  btn-lg rounded">취소</button>
           
             
 	</div>
-		</form>
-	</div>
+		
+	 <div style="border: solid 1px gray; height: 480px; width:1px; float: left;"></div>
+                
+                     
+          
+               <div class="mas-boxes-inner" style="width: 49.5%; height: 480px; float: left; "  >
+              	
+             			<div class="form-group sm_margin" ><br>
+         					<input type="hidden" name="memberno_fk" value="${sessionScope.loginuser.memberno}" readonly />  
+         					<input type="hidden" name="story_no" value="${storyDetailmap.STORY_NO}" readonly />
+             					<div style="margin-top: 50px;">
+             						
+								</div>	
+                        <label class="col-sm-2 control-label" style="height: 30px; width: 100px;">내용작성</label>
+                        	<div class="col-sm-10">
+                        <textarea class="form-control"  maxlength="250"  name="story_contents" style="min-height: 200px; resize: none;">${storyDetailmap.STORY_CONTENTS}</textarea>
+                        	</div>
+                        </div>
+                        
+                        <div class="form-group sm_margin" >
+         					
+                        <label class="col-sm-2 control-label" style="height: 30px; width: 100px; margin-top: 10px;">해쉬태그</label>
+                        
+                        	<div class="col-sm-10">
+                        	<textarea rows="2" cols="40" maxlength="40" class="form-control" name="story_tag" onclick="if(this.value=='${storyDetailmap.STORY_TAG}'){this.value=''}" style="resize: none; min-height: 30px;">${storyDetailmap.STORY_TAG}</textarea>
+                        	
+                        </div>
+                		        
+                        <div class="space-20"></div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                               
+                                                <div class="text-right" style="margin-top: 10px;">
+                                                    	<button type="button" onClick="goDelete();" class="btn btn-primary btn-lg rounded">삭제</button>
+														<button type="button" onClick="javascript:history.back();" class="btn btn-danger  btn-lg rounded">취소</button>
+													&nbsp;&nbsp;&nbsp;&nbsp;                                                   
+                                                </div><!--.chat-area-bottom-->
+                                            </div>
+                                    </div><!--row end-->               
+                                     
+           
+               </div>
+		</div>
+		</div>
+	</form>
 	
+	</div>
 	
 	<br><br><br><br>
 	
@@ -124,8 +183,6 @@
 
 	
 	function goDelete() {
-		
-		alert("정말로 삭제하시겠습니까??");
 		
 		var deleteFrm = document.deleteFrm;
 		deleteFrm.action = "/main/story/storydeleteEnd.action";

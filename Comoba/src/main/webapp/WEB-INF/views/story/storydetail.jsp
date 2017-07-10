@@ -346,10 +346,10 @@ function goWrite(){
                			<img src="<%= request.getContextPath() %>/resources/img/edit.png" style=" float:right; margin:5px; width:15px; height:15px;">
                		</a>
                	</c:if>	
-             		
+             	
  	              <div class="mas-con-inner" style=" height: 150px; margin-top: 23px; margin-left: 20px; margin-right: 20px;" >
  	             	 ${storyDetailmap.STORY_CONTENTS}
- 	              </div>
+ 	              </div> 
  	             
          	<div class="mas-blog-inner" style="padding: 3px; " > 
  	             <div class="mas-hash-inner" style=" height: 20px;" >
