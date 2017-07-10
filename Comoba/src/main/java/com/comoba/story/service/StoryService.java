@@ -248,34 +248,5 @@ public class StoryService implements InterStoryService {
 		
 		return n;
 	}
-
-			// 스터디룸 상세페이지 가져오기
-				@Override
-				public HashMap<String, Object> detailView(String studyroom_no) {
-
-					HashMap<String, Object> map = dao.detailView(studyroom_no);
-					
-					return map;
-				}
-
-				// 스터디룸 상세페이지 이미지 가져오기
-				@Override
-				public List<HashMap<String, Object>> getImgList(String studyroom_no) {
-				
-					List<HashMap<String, Object>> imglsit = dao.getImgList(studyroom_no);
-					
-					return imglsit;
-				}
-//스터디룸 삭제 페이지 가져오기
-				@Override
-	public int studyroomDel(String studyroom_no) {
-		
-		int n = dao.studyroomDel(studyroom_no); 
-		
-		return n;
-	}
-
-	
-
 	
 }

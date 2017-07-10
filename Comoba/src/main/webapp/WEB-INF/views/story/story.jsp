@@ -22,8 +22,6 @@
 
 <script type="text/javascript">
 
-
-
 $(document).ready(function(){
 	       
    	$(".my_like").hover(
@@ -87,7 +85,7 @@ function golikeOn(likestory_no, likememberno, likecount) {
               
              var html = "";
              
-            	 html = "<img src='<%= request.getContextPath() %>/resources/img/wish_final2.png' alt='' style=' width:30px; height:30px;' class='my_like' onClick='golikeOff(" +data.Story_no+",${sessionScope.loginuser.memberno},1);'>"; 
+            	 html = "<img src='<%= request.getContextPath() %>/resources/img/like.png' alt='' style=' width:25px; height:25px;' class='my_like' onClick='golikeOff(" +data.Story_no+",${sessionScope.loginuser.memberno},1);'>"; 
             		/*  data.Story_no */
             	 
             	 		 
@@ -136,7 +134,7 @@ function golikeOff(likestory_no, likememberno, likecount) {
               
              var html = "";
              
-             html = "<img src='<%= request.getContextPath() %>/resources/img/wish_final.png' alt='' style=' width:30px; height:30px;' class='my_like' onClick='golikeOn(" +data.Story_no+",${sessionScope.loginuser.memberno},0);'>";
+             html = "<img src='<%= request.getContextPath() %>/resources/img/nolike.png' alt='' style=' width:25px; height:25px;' class='my_like' onClick='golikeOn(" +data.Story_no+",${sessionScope.loginuser.memberno},0);'>";
             	 
              
                	 $('#love'+likestory_no).html(html);   // html을  largeImg 넣어주어라
@@ -166,7 +164,10 @@ function golikeOff(likestory_no, likememberno, likecount) {
 
 <div class="divide80" align="center" style="padding-top: 23px;">
 		<form name="searchFrm">
-		
+			<select name="colname" id="colname">
+				<option value="nickname">닉네임</option>
+				<option value="story_tag">해쉬태그</option>
+			</select>
 			<input type="text" name="search" id="search" size="40px"/>
 			<img class="my_like" src="<%= request.getContextPath() %>/resources/img/search.jpg" alt="" style="width:32px; height:32px;" onClick="goSearch();" >
 		
@@ -217,7 +218,7 @@ function golikeOff(likestory_no, likememberno, likecount) {
 					<c:if test="${(likecount == 1)}">
 						<div class ="love" id="love${map.STORY_NO}" style="float: right; margin-top: 20px;">
 						
-							<img src="<%= request.getContextPath() %>/resources/img/wish_final2.png" alt="" style=" width:30px; height:30px;" class="my_like" onClick="golikeOff('${map.STORY_NO}','${sessionScope.loginuser.memberno}','${likecount}');" >
+							<img src="<%= request.getContextPath() %>/resources/img/like.png" alt="" style=" width:25px; height:25px;" class="my_like" onClick="golikeOff('${map.STORY_NO}','${sessionScope.loginuser.memberno}','${likecount}');" >
 						
 						</div> 
 					</c:if>
@@ -225,7 +226,7 @@ function golikeOff(likestory_no, likememberno, likecount) {
 					<c:if test="${(likecount == 0)}">
 						<div class="love" id="love${map.STORY_NO}" style="float: right; margin-top: 20px;">
 					
-							<img src="<%= request.getContextPath() %>/resources/img/wish_final.png" alt="" style=" width:30px; height:30px;" class="my_like" onClick="golikeOn('${map.STORY_NO}','${sessionScope.loginuser.memberno}','${likecount}');" >
+							<img src="<%= request.getContextPath() %>/resources/img/nolike.png" alt="" style=" width:25px; height:25px;" class="my_like" onClick="golikeOn('${map.STORY_NO}','${sessionScope.loginuser.memberno}','${likecount}');" >
 				
 						</div>
 					</c:if> 
@@ -233,7 +234,7 @@ function golikeOff(likestory_no, likememberno, likecount) {
 				  	
 				        
              </div>
-                <div class="mas-blog-inner" align="center" style="height:300px; width:300px; padding: 10px;" >
+                <div class="mas-blog-inner"  align="center" style="height:300px; width:300px; padding: 10px;" >
                 
                 	<c:if test="${(map.THUMBNAILFILENAME == null)}">
                 		<a href="<%= request.getContextPath() %>/story/storydetail.action?story_no=${map.STORY_NO}&memberno=${map.MEMBERNO_FK}">
@@ -243,7 +244,7 @@ function golikeOff(likestory_no, likememberno, likecount) {
                 		
                 	<c:if test="${(map.THUMBNAILFILENAME != null)}">
                 		<a href="<%= request.getContextPath() %>/story/storydetail.action?story_no=${map.STORY_NO}&memberno=${map.MEMBERNO_FK}">
-                			<img src="<%= request.getContextPath() %>/resources/files/${map.THUMBNAILFILENAME}">
+                			<img src="<%= request.getContextPath() %>/resources/files/${map.THUMBNAILFILENAME}" style=" width:280px; height:280px; ">
                     	</a>	
                     </c:if>
                     
