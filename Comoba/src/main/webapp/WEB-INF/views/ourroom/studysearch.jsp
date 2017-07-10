@@ -66,7 +66,7 @@ html, body {
 	padding-left: 10px;
 } */
 .jy {
-	margin-top: 5%;
+	margin-top: 0;
 }
 </style>
 
