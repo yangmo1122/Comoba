@@ -120,7 +120,7 @@
                         
                         <div class="form-group sm_margin" >
          					
-                        <label class="col-sm-2 control-label" style="height: 30px; width: 100px; margin-top: 10px;"></label>
+                        <label class="col-sm-2 control-label" style="height: 30px; width: 100px; margin-top: 10px;">해쉬태그</label>
                         
                         	<div class="col-sm-10">
                         	<textarea rows="2" cols="40" maxlength="40" class="form-control" name="story_tag" onclick="if(this.value=='${storyDetailmap.STORY_TAG}'){this.value=''}" style="resize: none; min-height: 30px;">${storyDetailmap.STORY_TAG}</textarea>
@@ -132,7 +132,7 @@
                                             <div class="col-sm-12">
                                                
                                                 <div class="text-right" style="margin-top: 10px;">
-                                                    <button type="button" onClick="goUpdate();" class="btn btn-primary btn-lg rounded">작성</button>
+                                                    <button type="button" onClick="goUpdate();" class="btn btn-primary btn-lg rounded">수정</button>
                                                     <button type="button" onClick="javascript:history.back();" class="btn btn-danger  btn-lg rounded">취소</button>
 													&nbsp;&nbsp;&nbsp;&nbsp;                                                   
                                                 </div><!--.chat-area-bottom-->

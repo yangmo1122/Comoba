@@ -88,11 +88,5 @@ public interface InterStoryService {
 	
 	// 글게시물에 대한 멤버넘버 가져오기
 	int getmemberno(String story_no);
-
-	HashMap<String, Object> detailView(String studyroom_no);// 스터디룸 상세페이지 가져오기
-
-	List<HashMap<String, Object>> getImgList(String studyroom_no);		// 스터디룸 상세페이지 이미지 가져오기
-
-	int studyroomDel(String board_no); //스터디룸 삭제 페이지 가져오기
 	
 }
