@@ -315,9 +315,9 @@
 								'success')
 
 						document.frmDel.boardno.value = boradno;
-						alert(boradno);
-						alert(document.frmDel.boardno.value);
-						alert(typeof (document.frmDel.boardno.value));
+				//		alert(boradno);
+				//		alert(document.frmDel.boardno.value);
+				//		alert(typeof (document.frmDel.boardno.value));
 
 						document.frmDel.action = "/main/admin/del.action";
 						document.frmDel.method = "GET";
@@ -338,7 +338,7 @@
 		$(document).on("click", "#edit", function(e) {
 			var _target = $(e.target);
 
-			alert(_target.data("boardno"));
+			// alert(_target.data("boardno"));
 
 			$("#modal_boardno1").html("게시물 번호 : " + _target.data("boardno"));
 

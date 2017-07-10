@@ -66,5 +66,7 @@ public interface InterLiveDAO {
 	//List<MemberVO> followingInfo(List<Integer> followingList);		//위 번호들을 받아와서 정보 뽑기
 	
 	List<HashMap<String, String>> myStoryList(int memberno); // 글 뽑기
+	
+	List<HashMap<String, String>> mysecretStoryList(int memberno); // 글 뽑기
 	//양모거 끝
 }

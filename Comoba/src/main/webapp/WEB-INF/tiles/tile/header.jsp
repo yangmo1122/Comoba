@@ -46,6 +46,12 @@
         <!-- intro 화면-->
         <link href="<%=request.getContextPath() %>/resources/assets/plugins/lightbox2/dist/css/lightbox.css" rel="stylesheet">
         
+        <style>
+.jy{
+background-color: white !important;
+}
+</style>
+        
     </head>
     <body>
         <div class="top-bar-dark">            
@@ -91,7 +97,7 @@
         </div><!--top-bar-dark end here-->
         <!--navigation -->
         <!-- Static navbar -->
-        <div class="navbar navbar-default navbar-static-top yamm sticky" role="navigation">
+        <div class="navbar navbar-default navbar-static-top yamm sticky jy" role="navigation">
             <div class="container">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -146,6 +152,7 @@
                             </ul>
                         </li>
                         
+                          <c:if test="${sessionScope.loginuser.email == 'woflqh12@naver.com'}">
                         <!--관리자-->
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">관리자<i class="fa fa-angle-down"></i></a>
@@ -157,6 +164,7 @@
                                 <li><a href="<%=request.getContextPath()%>/admin/boardCnt.action">게시물 및 매출 현황(chart)</a></li>
                             </ul>
                         </li>
+                     </c:if>
        
                     </ul>
                 </div><!--/.nav-collapse -->
